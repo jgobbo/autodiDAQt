@@ -38,9 +38,9 @@ classifiers = [
 python = ">=3.8,<3.10"
 
 # comment out before deployment and replace by the equivalent peer-dep
-autodidaqt_common = {path = "../autodidaqt-common", develop = true}
+# autodidaqt_common = {path = "../autodidaqt-common", develop = false}
 
-PyQt5 = "~5.13.0"
+PyQt5 = "5.15.4"
 Quamash = "~0.6.1"
 appdirs = "~1.4.4"
 asyncqt = "~0.8.0"
@@ -48,14 +48,14 @@ loguru = "~0.3.2"
 matplotlib = "^3.1.1"
 pymeasure = "~0.9.0"
 pyqt-led = "~0.0.6"
-pyqtgraph = "~0.12.1"
+pyqtgraph = "0.12.1"
 pyrsistent = "~0.17.3"
 python-dotenv = "~0.10.3"
 qtsass = "~0.3.0"
 rx = "^3.0.1"
 slackclient = "^2.1.0"
 
-instrumentkit = "~0.5"
+instrumentkit = "~0.5.0"
 python-ivi = "~0.14.9"
 pyvisa = "^1.11.0"
 pyvisa-sim = "~0.4.0"
