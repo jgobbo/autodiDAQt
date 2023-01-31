@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 
 from autodidaqt import AutodiDAQt, Panel
 from autodidaqt.ui import CollectUI, bind_dataclass, layout_dataclass, vertical
 
 
 class AOrB(Enum):
-    A = 0
-    B = 1
+    A = auto()
+    B = auto()
 
 
 @dataclass

@@ -310,10 +310,13 @@ class ExperimentPanel(Panel):
             self.additional_plots = self.experiment.current_run.additional_plots
 
             for additional_plot in self.additional_plots:
-                dependent_is_image_like = isinstance(
-                    self.experiment.current_run.streaming_daq_ys[additional_plot["dependent"]][0],
-                    np.ndarray,
-                )
+                if additional_plot["dep_processor"] is not None:
+                    dependent_is_image_like = False
+                else:
+                    dependent_is_image_like = isinstance(
+                        self.experiment.current_run.streaming_daq_ys[additional_plot["dependent"]][0],
+                        np.ndarray,
+                    )
                 assert not dependent_is_image_like and "Cannot plot 1D/2D vs 2D data currently"
                 independent_is_image_like = len(additional_plot["independent"]) >= 2
 
@@ -380,17 +383,18 @@ class ExperimentPanel(Panel):
 
             for user_plot_name in self.additional_plots:
                 self.update_user_stream_plot(user_plot_name)
+            
 
         else:
-            if viewing_plot < len(self.pg_plots):
-                self.update_data_stream_plot(*list(self.pg_plots.items())[viewing_plot])
-            else:
+            if viewing_plot < len(self.additional_plots):
                 self.update_user_stream_plot(
-                    *list(self.additional_plots)[viewing_plot - len(self.pg_plots)]
+                    list(self.additional_plots)[viewing_plot]
                 )
+            else:
+                self.update_data_stream_plot(*list(self.pg_plots.items())[viewing_plot-len(self.additional_plots)])
 
     def update_user_stream_plot(self, user_plot_key):
-        name, ind, dep = [user_plot_key[k] for k in ["name", "independent", "dependent"]]
+        name, ind, dep, dep_processor = [user_plot_key[k] for k in ["name", "independent", "dependent", "dep_processor"]]
         pg_plot = self.user_pg_plots[name]
         if len(ind) > 1:
             last_index = user_plot_key.get("last_index", 0)
@@ -400,7 +404,9 @@ class ExperimentPanel(Panel):
             xss = np.stack(
                 [self.experiment.current_run.streaming_daq_ys[indi][last_index:] for indi in ind]
             )
+
             ys = self.experiment.current_run.streaming_daq_ys[dep][last_index:]
+            ys = np.array([dep_processor(y) for y in ys]) if dep_processor is not None else ys
 
             user_plot_key["last_index"] = last_index + len(ys)
 
@@ -409,7 +415,7 @@ class ExperimentPanel(Panel):
                 if color:
                     s["color"] = color(y)
                 return s
-
+            
             pg_plot.addPoints([make_spot(i, y) for i, y in enumerate(ys)])
         else:
             xs, ys = (
@@ -423,8 +429,10 @@ class ExperimentPanel(Panel):
             self.experiment.current_run.streaming_daq_xs[k],
             self.experiment.current_run.streaming_daq_ys[k],
         )
+
         if self.plot_type[k] == "image":
-            pg_plot.setImage(ys[-1])
+            if ys[-1].size != 0: # there's probably a more robust way to do this
+                pg_plot.setImage(ys[-1])
         else:
             assert self.plot_type[k] == "line"
             pg_plot.setData(np.asarray(xs), np.asarray(ys))

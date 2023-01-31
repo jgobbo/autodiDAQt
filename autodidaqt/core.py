@@ -180,11 +180,7 @@ class AutodiDAQtMainWindow(QMainWindow):
                     ),
                     vertical(
                         *[
-                            led(
-                                None,
-                                shape=Led.circle,
-                                id="indicator-{}".format(panel_name),
-                            )
+                            led(None, shape=Led.circle, id="indicator-{}".format(panel_name),)
                             for panel_name in self.panel_order
                         ],
                         spacing=8,
@@ -226,11 +222,7 @@ def make_user_data_dataclass(profile_field: Optional[Any]) -> type:
 
     return make_dataclass(
         "UserData",
-        [
-            *profile_fields,
-            ("user", str, "global-user"),
-            ("session_name", str, "global-session"),
-        ],
+        [*profile_fields, ("user", str, "global-user"), ("session_name", str, "global-session"),],
     )
 
 
@@ -333,14 +325,10 @@ class AutodiDAQt:
             return {
                 "driver_init": {
                     "args": self.config.instruments.nested_get(
-                        [instrument_key, "initialize", "args"],
-                        [],
-                        safe_early_terminate=True,
+                        [instrument_key, "initialize", "args"], [], safe_early_terminate=True,
                     ),
                     "kwargs": self.config.instruments.nested_get(
-                        [instrument_key, "initialize", "kwargs"],
-                        {},
-                        safe_early_terminate=True,
+                        [instrument_key, "initialize", "kwargs"], {}, safe_early_terminate=True,
                     ),
                 },
             }
@@ -487,9 +475,7 @@ class AutodiDAQt:
             self.app_root
             / self.config.logging_directory
             / self.config.log_format.format(
-                user="global-log",
-                time=self.meta.datetime_started,
-                session="global-session",
+                user="global-log", time=self.meta.datetime_started, session="global-session",
             )
         )
         self._log_handler = logger.add(self.log_file)
@@ -553,10 +539,7 @@ class AutodiDAQt:
             self.remote = RemoteLink(
                 self,
                 self.cli_config.remote_config,
-                middleware=[
-                    TranslateCommandsMiddleware(),
-                    WireMiddleware(),
-                ],
+                middleware=[TranslateCommandsMiddleware(), WireMiddleware(),],
             )
             logger.info("Running remote .prepare")
             await self.remote.prepare()
@@ -650,9 +633,7 @@ class AutodiDAQt:
         return deepcopy(
             AutodiDAQtStateAtRest(
                 autodidaqt_state=AppState(
-                    user=self.user.user,
-                    session_name=self.user.session_name,
-                    profile=profile,
+                    user=self.user.user, session_name=self.user.session_name, profile=profile,
                 ),
                 schema=ser_schema,
                 panels={k: p.collect_state() for k, p in self.main_window.open_panels.items()},
@@ -792,4 +773,4 @@ class AutodiDAQt:
         finally:
             loop.close()
             logger.info("Closed autodidaqt successfully.")
-            sys.exit(0)
+            # sys.exit(0)

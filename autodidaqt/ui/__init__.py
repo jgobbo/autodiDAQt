@@ -92,6 +92,7 @@ __all__ = (
     "text_edit",
     "led",
     "numeric_input",
+    # "labeled_numeric",
     "scroll_area",
     # Observable tools
     "submit",
@@ -354,8 +355,8 @@ def button(text, horiz_expand=False, *args):
 
 
 @ui_builder
-def check_box(text, *args, **kwargs):
-    return CheckBox(text, *args, **kwargs)
+def check_box(text, *args, default=False, **kwargs):
+    return CheckBox(text, *args, default=default, **kwargs)
 
 
 @ui_builder
@@ -461,12 +462,7 @@ def led(*args, **kwargs):
 
 @ui_builder
 def numeric_input(
-    value=0,
-    input_type: type = float,
-    *args,
-    subject=None,
-    validator_settings=None,
-    **kwargs,
+    value=0, input_type: type = float, *args, subject=None, validator_settings=None, **kwargs,
 ):
     validators = {
         int: QtGui.QIntValidator,
@@ -488,6 +484,21 @@ def numeric_input(
     widget.setValidator(validators.get(input_type, QtGui.QIntValidator)(**validator_settings))
 
     return widget
+
+
+# TODO fix
+# def labeled_numeric(
+#     text: str,
+#     value=0,
+#     input_type: type = float,
+#     *args,
+#     subject=None,
+#     validator_settings=None,
+#     **kwargs,
+# ):
+#     return horizontal(
+#         label(text), numeric_input(value, input_type, *args, subject, validator_settings, **kwargs)
+#     )
 
 
 def _wrap_text(str_or_widget):
@@ -515,9 +526,7 @@ def submit(gate: Hashable, keys: List[Hashable], ui: Dict[Hashable, QWidget]) ->
     )
 
     return gate.pipe(
-        ops.filter(lambda x: x),
-        ops.with_latest_from(combined),
-        ops.map(lambda x: x[1]),
+        ops.filter(lambda x: x), ops.with_latest_from(combined), ops.map(lambda x: x[1]),
     )
 
 
@@ -576,8 +585,7 @@ def _layout_function_parameter(parameter: Parameter, prefix: str):
     }[parameter_type]
 
     return group(
-        f"{parameter.name} : {parameter_type.__name__}",
-        widget_cls(id=(prefix, parameter.name)),
+        f"{parameter.name} : {parameter_type.__name__}", widget_cls(id=(prefix, parameter.name)),
     )
 
 
@@ -630,23 +638,16 @@ def bind_function_call(
     translations = {k: translate(signature.parameters[k]) for k in signature.parameters.keys()}
 
     for k, v in values.items():
-        ui[
-            (
-                prefix,
-                k,
-            )
-        ].subject.on_next(translations[k][0](v))
+        ui[(prefix, k,)].subject.on_next(translations[k][0](v))
 
     def perform_call(call_kwargs):
         call_kwargs = {k[1]: v for k, v in call_kwargs.items()}
         safe_call_kwargs = {k: translations[k][1](v) for k, v in call_kwargs.items()}
         function(**safe_call_kwargs)
 
-    submit(
-        (prefix, "submit"),
-        [(prefix, k) for k in signature.parameters.keys()],
-        ui,
-    ).subscribe(perform_call)
+    submit((prefix, "submit"), [(prefix, k) for k in signature.parameters.keys()], ui,).subscribe(
+        perform_call
+    )
 
 
 def layout_dataclass(
@@ -748,9 +749,7 @@ def bind_dataclass(dataclass_instance, prefix: str, ui: Dict[Hashable, QWidget])
 
     if submit_button:
         submit(
-            gate=(prefix, "submit!"),
-            keys=[(prefix, k) for k in instance_widgets],
-            ui=ui,
+            gate=(prefix, "submit!"), keys=[(prefix, k) for k in instance_widgets], ui=ui,
         ).subscribe(write_all)
 
 

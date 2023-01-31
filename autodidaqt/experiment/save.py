@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, TYPE_CHECKING
 
 import json
 import pickle
@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from autodidaqt_common.json import RichEncoder
+
+if TYPE_CHECKING:
+    from .run import Run
 
 __all__ = [
     "save_cls_from_short_name",
@@ -18,13 +21,17 @@ __all__ = [
 ]
 
 
-def save_on_separate_thread(run, directory, collation, extra_attrs=None, save_format="zarr"):
-    collated = None
-    if collation:
-        try:
-            collated = collation.to_xarray(run.daq_values)
-        except:
-            pass
+def save_on_separate_thread(run:"Run", directory:Path, collation, extra_attrs=None, save_format="zarr"):
+    # if collation:
+    #     try:
+    #         collated = collation.to_xarray(run.daq_values)
+    #     except:
+    #         collated = None
+
+    try:
+        collated = collation.to_xarray(run.daq_values)
+    except:
+        collated = None
 
     run.save(
         directory,
@@ -108,7 +115,7 @@ class PickleSaver(RunSaver):
             if v is None:
                 continue
 
-            PickleSaver.save_pickle(context.save_directory / f"{k.pickle}", v)
+            PickleSaver.save_pickle(context.save_directory / f"{k}.pickle", v)
 
     @staticmethod
     def save_run(metadata, data, context: SaveContext):

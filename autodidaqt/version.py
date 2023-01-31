@@ -10,7 +10,7 @@ def get_version() -> str:
     try:
         return importlib_metadata.version(__name__.split(".version")[0])
     except importlib_metadata.PackageNotFoundError:
-        return "unknown"
+        return "autodidaqt-unknown"
 
 
 version: str = get_version()

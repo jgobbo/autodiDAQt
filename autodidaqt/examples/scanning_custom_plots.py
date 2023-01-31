@@ -12,7 +12,7 @@ class XScan:
     n_points_x: int = 20
     n_points_y: int = 20
 
-    def sequence(self, experiment, mc, power_meter):
+    def sequence(self, experiment:Experiment, mc:MockMotionController, power_meter:MockScalarDetector, **kwargs):
         experiment.plot(
             dependent="power_meter.device",
             independent=["mc.stages[0]"],
@@ -39,7 +39,7 @@ app = AutodiDAQt(
     __name__,
     {},
     dict(experiment=MyExperiment),
-    dict(mc=MockMotionController, power_meter=MockScalarDetector),
+    dict(mc=MockMotionController, power_meter=MockScalarDetector, phony=MockMotionController),
 )
 
 if __name__ == "__main__":

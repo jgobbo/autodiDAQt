@@ -245,8 +245,7 @@ class ProxiedAxisView(AxisView):
                         button("->>", id=f"{self.id}-jog_pos_fast"),
                     ),
                     horizontal(
-                        "Slow Jog Amt. (Fast = 5x)",
-                        line_edit("0", id=f"{self.id}-jog_speed"),
+                        "Slow Jog Amt. (Fast = 5x)", line_edit("0", id=f"{self.id}-jog_speed"),
                     ),
                 ]
 
@@ -331,7 +330,7 @@ class BasicInstrumentPanel(Panel):
     SIZE = (600, 300)
     DEFAULT_OPEN = True
 
-    def __init__(self, parent, id, app, instrument_description, instrument_actor):
+    def __init__(self, parent, id, app, instrument_description, instrument_actor, *args, **kwargs):
         """Sets up the instrument panel, including connections to the parent and host instrument.
 
         Args:
@@ -352,19 +351,20 @@ class BasicInstrumentPanel(Panel):
 
         self.ui = {}
 
-        super().__init__(parent, id, app)
+        super().__init__(parent, id, app, *args, **kwargs)
+
+    @property
+    def instrument(self):
+        return self.app.managed_instruments[self.id]
 
     def retrieve(self, path: List[Union[str, int]]):
-        instrument = self.app.managed_instruments[self.id]
-        return functools.reduce(safe_lookup, path, instrument)
+        return functools.reduce(safe_lookup, path, self.instrument)
 
     def write_to_instrument(self):
         pass
 
     def layout_for_single_axis(
-        self,
-        description: Union[ProxiedAxis, LogicalAxis, TestAxis],
-        path_to_axis,
+        self, description: Union[ProxiedAxis, LogicalAxis, TestAxis], path_to_axis,
     ):
         view_cls = {
             ProxiedAxis: ProxiedAxisView,
@@ -383,10 +383,7 @@ class BasicInstrumentPanel(Panel):
         if isinstance(description, list):
             return tabs(
                 *[
-                    [
-                        str(i),
-                        self.layout_for_single_axis(d, path_to_axis=[key, i]),
-                    ]
+                    [str(i), self.layout_for_single_axis(d, path_to_axis=[key, i]),]
                     for i, d in enumerate(description)
                 ]
             )
@@ -395,9 +392,7 @@ class BasicInstrumentPanel(Panel):
 
     def render_property(self, key):
         ins_property = self.description["properties"][key]
-        view_cls = {
-            ChoiceProperty: ChoicePropertyView,
-        }.get(type(ins_property))
+        view_cls = {ChoiceProperty: ChoicePropertyView,}.get(type(ins_property))
 
         view = view_cls(ins_property)
         self.property_views.append(view)
@@ -405,10 +400,7 @@ class BasicInstrumentPanel(Panel):
 
     def render_method(self, key):
         method = self.description["methods"][key]
-        view_cls = {
-            Method: MethodView,
-            TestMethod: MethodView,
-        }.get(type(method))
+        view_cls = {Method: MethodView, TestMethod: MethodView,}.get(type(method))
 
         view = view_cls(method)
         self.method_views.append(view)

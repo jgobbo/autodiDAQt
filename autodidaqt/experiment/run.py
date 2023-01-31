@@ -156,6 +156,7 @@ class Run:
             "point_ended": self.point_ended,
             "steps_taken": self.steps_taken,
         }
+
         daq = xr.merge(
             [
                 daq_to_timesequence_xarray("-".join(map(str, ks)), v)

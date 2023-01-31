@@ -19,7 +19,10 @@ QWidget {
 
 *[cssClass="experiment_header"] {
     background-color: $light-gray;
-    .QWidget, QLabel, QGroupBox {
+
+    .QWidget,
+    QLabel,
+    QGroupBox {
         background-color: $light-gray;
     }
 }

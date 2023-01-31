@@ -40,6 +40,11 @@ class Actor:
 
 class MessagingActor(Actor):
     async def run(self):
+        """
+            Actions that should be run repeatedly should be put in run_step. 
+            Only overwrite run (with a super().run() call included) for tasks done once. 
+            This probably never happens since these tasks should just be included in an actors prepare function.
+        """
         try:
             while True:
                 await self.read_messages()
@@ -70,6 +75,9 @@ class MessagingActor(Actor):
             pass
 
     async def run_step(self):
+        """
+        Overwrite this function to add repeated tasks during runtime.
+        """
         pass
 
 

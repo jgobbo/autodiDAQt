@@ -185,8 +185,10 @@ class PushButton(QPushButton, Subjective):
 
 
 class CheckBox(QCheckBox, Subjective):
-    def __init__(self, *args, subject=None, **kwargs):
+    def __init__(self, *args, default=False, subject=None, **kwargs):
         super().__init__(*args)
+
+        self.setChecked(default)
 
         self.subject = subject
         if self.subject is None:

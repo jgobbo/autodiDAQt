@@ -68,9 +68,9 @@ class ArrayPlot(pg.PlotWidget):
         self._coord_axis.setImage(data)
 
         if self.orientation == "horiz":
-            self.plotItem.plot(np.arange(0, len(data)), data, *args, **kwargs)
+            return self.plotItem.plot(np.arange(0, len(data)), data, *args, **kwargs)
         else:
-            self.plotItem.plot(data, np.arange(0, len(data)), *args, **kwargs)
+            return self.plotItem.plot(data, np.arange(0, len(data)), *args, **kwargs)
 
 
 class ArrayImageView(pg.ImageView):
@@ -158,3 +158,12 @@ class CursorRegion(pg.LinearRegionItem):
         with temporary_attrs(self, blockLineSignal=True):
             self.lines[1].setValue(value + self._region_width)
             self.lines[0].setValue(value)
+
+class RescalableCursorRegion(CursorRegion):
+    def __init__(self, *args, swapMode='push', **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.lines[1].setMovable(True)
+
+    def lineMoved(self, i):
+        pg.LinearRegionItem.lineMoved(self,i)
