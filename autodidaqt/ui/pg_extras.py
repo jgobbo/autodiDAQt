@@ -7,6 +7,8 @@ from scipy import interpolate
 
 from autodidaqt.utils import temporary_attrs
 
+from xarray import DataArray
+
 __all__ = (
     "CursorRegion",
     "ArrayImageView",
@@ -100,7 +102,10 @@ class ArrayImageView(pg.ImageView):
         for axis in self._coord_axes.values():
             axis.setImage(arr)
 
-        super().setImage(arr, *args, **kwargs)
+        if isinstance(arr, DataArray):
+            super().setImage(arr.data, *args, **kwargs)
+        else:
+            super().setImage(arr, *args, **kwargs)
 
         if keep_levels:
             self.setLevels(*levels)
