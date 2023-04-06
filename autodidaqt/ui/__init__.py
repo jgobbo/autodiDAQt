@@ -480,8 +480,8 @@ def numeric_input(
         subject = value
         value = subject.value
 
-    widget = LineEdit(str(value), *args, subject=subject, process_on_next=str, **kwargs)
-    widget.setValidator(validators.get(input_type, QtGui.QIntValidator)(**validator_settings))
+    validator = validators.get(input_type, QtGui.QIntValidator)(**validator_settings)
+    widget = NumericEdit(str(value), *args, subject=subject, process_on_next=str, validator=validator, **kwargs)
 
     return widget
 

@@ -16,12 +16,15 @@ from PyQt5.QtWidgets import (
 )
 from rx.subject import BehaviorSubject, Subject
 
+from PyQt5 import QtCore, QtGui
+
 __all__ = (
     "PushButton",
     "CheckBox",
     "ComboBox",
     "FileDialog",
     "LineEdit",
+    "NumericEdit",
     "RadioButton",
     "Slider",
     "SpinBox",
@@ -120,6 +123,70 @@ class LineEdit(QLineEdit, Subjective):
 
         if value != self.text():
             self.setText(value)
+
+    
+class NumericEdit(QLineEdit, Subjective):
+    validatedTextChanged = QtCore.pyqtSignal(str)
+    increment:float = 1.0
+
+    def __init__(self, *args, subject=None, process_on_next=None, validator:QtGui.QValidator=None, fallback_value=None):
+        super().__init__(*args)
+
+        self.subject = subject if subject is not None else BehaviorSubject(self.text())
+        self.process_on_next = process_on_next
+
+        if validator is None:
+            self.setValidator(QtGui.QDoubleValidator({"bottom": -1e6, "top": 1e6, "decimals": 3}))
+        else:
+            self.setValidator(validator)
+
+        if fallback_value is not None:
+            self.fallback_value = fallback_value
+        elif validator is not None:
+            self.fallback_value = validator.bottom()
+        else:
+            self.fallback_value = 1
+
+        # self.textChanged[str].connect(self.subject.on_next)
+        self.validatedTextChanged.connect(self.subject.on_next)
+        self.subject.subscribe(self.update_ui)
+
+    def update_ui(self, value):
+        if self.process_on_next:
+            value = self.process_on_next(value)
+
+        if value != self.text():
+            self.setText(value)
+
+    def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
+        if self.hasAcceptableInput():
+            self.validatedTextChanged.emit(self.text())
+        elif a0.key() == QtCore.Qt.Key_Return:
+            if self.validator is not None:
+                self.validatedTextChanged.emit(self.fixup(self.text()))
+            # TODO: handle input masks
+        return super().keyReleaseEvent(a0)
+    
+    def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
+        if not self.hasAcceptableInput():
+            if self.validator is not None:
+                self.validatedTextChanged.emit(self.fixup(self.text()))
+            # TODO: handle input masks
+        return super().focusOutEvent(a0)
+
+    def fixup(self, value:str) -> str:
+        if self.validator is None:
+            raise AttributeError("No validator set")
+        try:
+            value = float(value)
+        except ValueError:
+            return str(self.fallback_value)
+        
+        if value < self.validator().bottom():
+            return str(self.validator().bottom())
+        elif value > self.validator().top():
+            return str(self.validator().top())
+        return str(value) # should never happen
 
 
 class RadioButton(QRadioButton, Subjective):
