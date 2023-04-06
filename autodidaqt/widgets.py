@@ -151,6 +151,12 @@ class NumericEdit(QLineEdit, Subjective):
         self.validatedTextChanged.connect(self.subject.on_next)
         self.subject.subscribe(self.update_ui)
 
+    def setText(self, a0: str) -> None:
+        # Need to override this to emit the validatedTextChanged signal
+        if self.hasAcceptableInput():
+            self.validatedTextChanged.emit(a0)
+        return super().setText(a0)
+
     def update_ui(self, value):
         if self.process_on_next:
             value = self.process_on_next(value)
