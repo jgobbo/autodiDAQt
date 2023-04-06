@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QSpinBox,
     QTextEdit,
     QWidget,
+    QApplication
 )
 from rx.subject import BehaviorSubject, Subject
 
@@ -128,6 +129,7 @@ class LineEdit(QLineEdit, Subjective):
 class NumericEdit(QLineEdit, Subjective):
     validatedTextChanged = QtCore.pyqtSignal(str)
     increment:float = 1.0
+    multiplier:float = 5.0
 
     def __init__(self, *args, subject=None, process_on_next=None, validator:QtGui.QValidator=None, fallback_value=None):
         super().__init__(*args)
@@ -153,8 +155,8 @@ class NumericEdit(QLineEdit, Subjective):
 
     def setText(self, a0: str) -> None:
         # Need to override this to emit the validatedTextChanged signal
-        if self.hasAcceptableInput():
-            self.validatedTextChanged.emit(a0)
+        # TODO: make sure the validation still works when setText is called
+        self.validatedTextChanged.emit(a0)
         return super().setText(a0)
 
     def update_ui(self, value):
@@ -163,6 +165,26 @@ class NumericEdit(QLineEdit, Subjective):
 
         if value != self.text():
             self.setText(value)
+
+    def increment_value(self, amount:float):
+        if self.hasAcceptableInput():
+            value = float(self.text())
+            value += amount
+            self.setText(str(value))
+
+    def decrement_value(self, amount:float):
+        if self.hasAcceptableInput():
+            value = float(self.text())
+            value -= amount
+            self.setText(str(value))
+
+    def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
+        shift_pressed = a0.modifiers() & QtCore.Qt.ShiftModifier
+        if a0.key() == QtCore.Qt.Key_Up:
+            self.increment_value(self.increment * self.multiplier if shift_pressed else self.increment)
+        elif a0.key() == QtCore.Qt.Key_Down:
+            self.decrement_value(self.increment * self.multiplier if shift_pressed else self.increment)
+        return super().keyPressEvent(a0)
 
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
         if self.hasAcceptableInput():
