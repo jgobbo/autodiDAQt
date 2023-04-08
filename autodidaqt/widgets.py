@@ -128,11 +128,12 @@ class LineEdit(QLineEdit, Subjective):
     
 class NumericEdit(QLineEdit, Subjective):
     validatedTextChanged = QtCore.pyqtSignal(str)
-    increment:float = 1.0
-    multiplier:float = 5.0
 
-    def __init__(self, *args, subject=None, process_on_next=None, validator:QtGui.QValidator=None, fallback_value=None):
+    def __init__(self, *args, subject=None, process_on_next=None, validator:QtGui.QValidator=None, fallback_value=None, **kwargs):
         super().__init__(*args)
+
+        self.increment = kwargs.get("increment", 1.0)
+        self.multiplier = kwargs.get("multiplier", 5.0)
 
         self.subject = subject if subject is not None else BehaviorSubject(self.text())
         self.process_on_next = process_on_next
@@ -149,13 +150,14 @@ class NumericEdit(QLineEdit, Subjective):
         else:
             self.fallback_value = 1
 
-        # self.textChanged[str].connect(self.subject.on_next)
         self.validatedTextChanged.connect(self.subject.on_next)
         self.subject.subscribe(self.update_ui)
 
     def setText(self, a0: str) -> None:
-        # Need to override this to emit the validatedTextChanged signal
-        # TODO: make sure the validation still works when setText is called
+        # Need to override this for validation
+        if self.validator() is not None and self.validator().validate(a0, 0)[0] != QtGui.QValidator.State.Acceptable:
+            return
+        # TODO: prevent execution for violation of input mask
         self.validatedTextChanged.emit(a0)
         return super().setText(a0)
 
