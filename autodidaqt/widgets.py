@@ -1,4 +1,5 @@
 import os
+from functools import partial
 
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -143,15 +144,10 @@ class NumericEdit(QLineEdit, Subjective):
         else:
             self.setValidator(validator)
 
-        if fallback_value is not None:
-            self.fallback_value = fallback_value
-        elif validator is not None:
-            self.fallback_value = validator.bottom()
-        else:
-            self.fallback_value = 1
+        self.fallback_value = self.text()
+        self.validatedTextChanged.connect(partial(setattr, self, "fallback_value"))
 
         self.validatedTextChanged.connect(self.subject.on_next)
-        self.subject.subscribe(self.update_ui)
 
     def setText(self, a0: str) -> None:
         # Need to override this for validation
@@ -161,61 +157,50 @@ class NumericEdit(QLineEdit, Subjective):
         self.validatedTextChanged.emit(a0)
         return super().setText(a0)
 
-    def update_ui(self, value):
-        if self.process_on_next:
-            value = self.process_on_next(value)
-
-        if value != self.text():
-            self.setText(value)
-
-    def increment_value(self, amount:float):
-        if self.hasAcceptableInput():
+    def increment_value(self, amount:float)->None:
+        try:
             value = float(self.text())
-            value += amount
-            self.setText(str(value))
-
-    def decrement_value(self, amount:float):
-        if self.hasAcceptableInput():
-            value = float(self.text())
-            value -= amount
-            self.setText(str(value))
+        except ValueError:
+            return
+        value += amount
+        self.setText(str(value))
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
         shift_pressed = a0.modifiers() & QtCore.Qt.ShiftModifier
         if a0.key() == QtCore.Qt.Key_Up:
             self.increment_value(self.increment * self.multiplier if shift_pressed else self.increment)
         elif a0.key() == QtCore.Qt.Key_Down:
-            self.decrement_value(self.increment * self.multiplier if shift_pressed else self.increment)
+            self.increment_value(-(self.increment * self.multiplier) if shift_pressed else -self.increment)
         return super().keyPressEvent(a0)
 
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
-        if self.hasAcceptableInput():
+        """
+        TODO: might want to handle any case where the text is changed (e.g. backspace)
+        I think I prefer it this way where you have to enter a valid value
+        so deleting characters doesn't result in value changes.
+        """
+        if a0.text().isdigit() and self.hasAcceptableInput():
             self.validatedTextChanged.emit(self.text())
-        elif a0.key() == QtCore.Qt.Key_Return:
-            if self.validator is not None:
-                self.validatedTextChanged.emit(self.fixup(self.text()))
-            # TODO: handle input masks
+        elif a0.key() == QtCore.Qt.Key_Return and not self.hasAcceptableInput():
+            self.setText(self.fixup(self.text()))
         return super().keyReleaseEvent(a0)
     
     def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
         if not self.hasAcceptableInput():
-            if self.validator is not None:
-                self.validatedTextChanged.emit(self.fixup(self.text()))
-            # TODO: handle input masks
+            self.setText(self.fixup(self.text()))
         return super().focusOutEvent(a0)
 
     def fixup(self, value:str) -> str:
-        if self.validator is None:
-            raise AttributeError("No validator set")
         try:
             value = float(value)
         except ValueError:
-            return str(self.fallback_value)
+            return self.fallback_value
         
-        if value < self.validator().bottom():
-            return str(self.validator().bottom())
-        elif value > self.validator().top():
-            return str(self.validator().top())
+        if self.validator() is not None:
+            if value < self.validator().bottom():
+                return str(self.validator().bottom())
+            elif value > self.validator().top():
+                return str(self.validator().top())
         return str(value) # should never happen
 
 

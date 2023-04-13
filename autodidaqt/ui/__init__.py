@@ -485,22 +485,6 @@ def numeric_input(
 
     return widget
 
-
-# TODO fix
-# def labeled_numeric(
-#     text: str,
-#     value=0,
-#     input_type: type = float,
-#     *args,
-#     subject=None,
-#     validator_settings=None,
-#     **kwargs,
-# ):
-#     return horizontal(
-#         label(text), numeric_input(value, input_type, *args, subject, validator_settings, **kwargs)
-#     )
-
-
 def _wrap_text(str_or_widget):
     return label(str_or_widget) if isinstance(str_or_widget, str) else str_or_widget
 
