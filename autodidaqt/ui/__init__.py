@@ -192,7 +192,7 @@ def layout(
     internal_layout = layout_cls()
 
     if layout_cls not in {QVBoxLayout, QHBoxLayout}:
-        internal_layout.setMargin(margin)
+        internal_layout.setContentsMargins(*[margin] * 4)
 
     if layout_cls not in {}:
         if isinstance(content_margin, (int, float, str)):
@@ -462,7 +462,12 @@ def led(*args, **kwargs):
 
 @ui_builder
 def numeric_input(
-    value=0, input_type: type = float, *args, subject=None, validator_settings=None, **kwargs,
+    value=0,
+    input_type: type = float,
+    *args,
+    subject=None,
+    validator_settings=None,
+    **kwargs,
 ):
     validators = {
         int: QtGui.QIntValidator,
@@ -481,9 +486,17 @@ def numeric_input(
         value = subject.value
 
     validator = validators.get(input_type, QtGui.QIntValidator)(**validator_settings)
-    widget = NumericEdit(str(value), *args, subject=subject, process_on_next=str, validator=validator, **kwargs)
+    widget = NumericEdit(
+        str(value),
+        *args,
+        subject=subject,
+        process_on_next=str,
+        validator=validator,
+        **kwargs,
+    )
 
     return widget
+
 
 def _wrap_text(str_or_widget):
     return label(str_or_widget) if isinstance(str_or_widget, str) else str_or_widget
@@ -496,7 +509,9 @@ def _unwrap_subject(subject_or_widget):
         return subject_or_widget
 
 
-def submit(gate: Hashable, keys: List[Hashable], ui: Dict[Hashable, QWidget]) -> rx.Observable:
+def submit(
+    gate: Hashable, keys: List[Hashable], ui: Dict[Hashable, QWidget]
+) -> rx.Observable:
     try:
         gate = ui[gate]
     except (ValueError, TypeError):
@@ -510,7 +525,9 @@ def submit(gate: Hashable, keys: List[Hashable], ui: Dict[Hashable, QWidget]) ->
     )
 
     return gate.pipe(
-        ops.filter(lambda x: x), ops.with_latest_from(combined), ops.map(lambda x: x[1]),
+        ops.filter(lambda x: x),
+        ops.with_latest_from(combined),
+        ops.map(lambda x: x[1]),
     )
 
 
@@ -524,7 +541,9 @@ def _layout_dataclass_field(
 
     allowable_range = annotation.get("range", (-1e5, 1e5))
     label = annotation.get("label", field_name)
-    label_transform = annotation.get("label_transform", lambda x: x.replace("_", " ").title())
+    label_transform = annotation.get(
+        "label_transform", lambda x: x.replace("_", " ").title()
+    )
     label = label_transform(label)
 
     if field.type in [
@@ -569,7 +588,8 @@ def _layout_function_parameter(parameter: Parameter, prefix: str):
     }[parameter_type]
 
     return group(
-        f"{parameter.name} : {parameter_type.__name__}", widget_cls(id=(prefix, parameter.name)),
+        f"{parameter.name} : {parameter_type.__name__}",
+        widget_cls(id=(prefix, parameter.name)),
     )
 
 
@@ -619,19 +639,28 @@ def bind_function_call(
     if values is None:
         values = {}
 
-    translations = {k: translate(signature.parameters[k]) for k in signature.parameters.keys()}
+    translations = {
+        k: translate(signature.parameters[k]) for k in signature.parameters.keys()
+    }
 
     for k, v in values.items():
-        ui[(prefix, k,)].subject.on_next(translations[k][0](v))
+        ui[
+            (
+                prefix,
+                k,
+            )
+        ].subject.on_next(translations[k][0](v))
 
     def perform_call(call_kwargs):
         call_kwargs = {k[1]: v for k, v in call_kwargs.items()}
         safe_call_kwargs = {k: translations[k][1](v) for k, v in call_kwargs.items()}
         function(**safe_call_kwargs)
 
-    submit((prefix, "submit"), [(prefix, k) for k in signature.parameters.keys()], ui,).subscribe(
-        perform_call
-    )
+    submit(
+        (prefix, "submit"),
+        [(prefix, k) for k in signature.parameters.keys()],
+        ui,
+    ).subscribe(perform_call)
 
 
 def layout_dataclass(
@@ -657,7 +686,9 @@ def layout_dataclass(
     contents = []
     for field_name, field in dataclass_cls.__dataclass_fields__.items():
         contents.append(
-            _layout_dataclass_field(field, field_name, prefix, annotations.get(field_name, {}))
+            _layout_dataclass_field(
+                field, field_name, prefix, annotations.get(field_name, {})
+            )
         )
 
     if submit:
@@ -733,7 +764,9 @@ def bind_dataclass(dataclass_instance, prefix: str, ui: Dict[Hashable, QWidget])
 
     if submit_button:
         submit(
-            gate=(prefix, "submit!"), keys=[(prefix, k) for k in instance_widgets], ui=ui,
+            gate=(prefix, "submit!"),
+            keys=[(prefix, k) for k in instance_widgets],
+            ui=ui,
         ).subscribe(write_all)
 
 
@@ -743,7 +776,9 @@ def transforms_for_field(field):
         float: (lambda x: str(x), lambda x: float(x)),
     }
 
-    translate_from_field, translate_to_field = MAP_TYPES.get(field.type, (lambda x: x, lambda x: x))
+    translate_from_field, translate_to_field = MAP_TYPES.get(
+        field.type, (lambda x: x, lambda x: x)
+    )
 
     if issubclass(field.type, Enum):
         enum_type = type(list(field.type.__members__.values())[0].value)

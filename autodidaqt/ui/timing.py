@@ -38,7 +38,7 @@ class Debouncer:
         self.dispose_timer()
 
         self.timer = QTimer()
-        self.timer.setInterval(self.duration * 1000)
+        self.timer.setInterval(round(self.duration * 1000))
         self.timer.timeout.connect(self.fire)
         self.timer.start()
 
