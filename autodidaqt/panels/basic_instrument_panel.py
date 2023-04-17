@@ -44,7 +44,10 @@ from autodidaqt.utils import safe_lookup
 
 class TimeAxisItem(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
-        return [datetime.datetime.fromtimestamp(value) for value in values]
+        return [
+            datetime.datetime.fromtimestamp(value).strftime("%d%m%Y")
+            for value in values
+        ]
 
 
 class MethodView:
@@ -81,11 +84,15 @@ class ChoicePropertyView:
     def layout(self):
         ui = {}
 
-        inverse_mapping = dict(zip(self.prop.labels.values(), self.prop.choices.values()))
+        inverse_mapping = dict(
+            zip(self.prop.labels.values(), self.prop.choices.values())
+        )
         inverse_values = dict(zip(self.prop.choices.values(), self.prop.choices.keys()))
 
         with CollectUI(ui):
-            layout = group(self.prop.name, combo_box(self.prop.labels.values(), id="combo"))
+            layout = group(
+                self.prop.name, combo_box(self.prop.labels.values(), id="combo")
+            )
 
         def on_change(value):
             self.prop.set(inverse_mapping[value])
@@ -213,7 +220,9 @@ class ProxiedAxisView(AxisView):
         jog_controls = []
         live_plots = []
         if self.live_line_plottable:
-            widget = pg.PlotWidget(axisItems={"bottom": TimeAxisItem(orientation="bottom")})
+            widget = pg.PlotWidget(
+                axisItems={"bottom": TimeAxisItem(orientation="bottom")}
+            )
             self.live_plot = widget.plot()
             widget.setTitle(self.id)
 
@@ -245,7 +254,8 @@ class ProxiedAxisView(AxisView):
                         button("->>", id=f"{self.id}-jog_pos_fast"),
                     ),
                     horizontal(
-                        "Slow Jog Amt. (Fast = 5x)", line_edit("0", id=f"{self.id}-jog_speed"),
+                        "Slow Jog Amt. (Fast = 5x)",
+                        line_edit("0", id=f"{self.id}-jog_speed"),
                     ),
                 ]
 
@@ -290,7 +300,9 @@ class LogicalAxisView(AxisView):
             view.attach(ui)
 
     def layout(self):
-        self.sub_axes = [getattr(self.axis, n) for n in self.axis.logical_coordinate_names]
+        self.sub_axes = [
+            getattr(self.axis, n) for n in self.axis.logical_coordinate_names
+        ]
         self.sub_views = [
             LogicalSubaxisView(axis, self.path_to_axis + [n])
             for axis, n in zip(self.sub_axes, self.axis.logical_coordinate_names)
@@ -305,7 +317,9 @@ class LogicalAxisView(AxisView):
         return tabs(
             *[
                 [n, sub_view.layout()]
-                for sub_view, n in zip(self.sub_views, self.axis.logical_coordinate_names)
+                for sub_view, n in zip(
+                    self.sub_views, self.axis.logical_coordinate_names
+                )
             ],
             *state_panel,
         )
@@ -330,7 +344,9 @@ class BasicInstrumentPanel(Panel):
     SIZE = (600, 300)
     DEFAULT_OPEN = True
 
-    def __init__(self, parent, id, app, instrument_description, instrument_actor, *args, **kwargs):
+    def __init__(
+        self, parent, id, app, instrument_description, instrument_actor, *args, **kwargs
+    ):
         """Sets up the instrument panel, including connections to the parent and host instrument.
 
         Args:
@@ -364,7 +380,9 @@ class BasicInstrumentPanel(Panel):
         pass
 
     def layout_for_single_axis(
-        self, description: Union[ProxiedAxis, LogicalAxis, TestAxis], path_to_axis,
+        self,
+        description: Union[ProxiedAxis, LogicalAxis, TestAxis],
+        path_to_axis,
     ):
         view_cls = {
             ProxiedAxis: ProxiedAxisView,
@@ -383,7 +401,10 @@ class BasicInstrumentPanel(Panel):
         if isinstance(description, list):
             return tabs(
                 *[
-                    [str(i), self.layout_for_single_axis(d, path_to_axis=[key, i]),]
+                    [
+                        str(i),
+                        self.layout_for_single_axis(d, path_to_axis=[key, i]),
+                    ]
                     for i, d in enumerate(description)
                 ]
             )
@@ -392,7 +413,9 @@ class BasicInstrumentPanel(Panel):
 
     def render_property(self, key):
         ins_property = self.description["properties"][key]
-        view_cls = {ChoiceProperty: ChoicePropertyView,}.get(type(ins_property))
+        view_cls = {
+            ChoiceProperty: ChoicePropertyView,
+        }.get(type(ins_property))
 
         view = view_cls(ins_property)
         self.property_views.append(view)
@@ -400,7 +423,10 @@ class BasicInstrumentPanel(Panel):
 
     def render_method(self, key):
         method = self.description["methods"][key]
-        view_cls = {Method: MethodView, TestMethod: MethodView,}.get(type(method))
+        view_cls = {
+            Method: MethodView,
+            TestMethod: MethodView,
+        }.get(type(method))
 
         view = view_cls(method)
         self.method_views.append(view)
@@ -410,19 +436,28 @@ class BasicInstrumentPanel(Panel):
         with CollectUI(self.ui):
             grid(
                 tabs(
-                    *[[k, self.tab_for_axis_group(k)] for k in self.description["axes"]],
+                    *[
+                        [k, self.tab_for_axis_group(k)]
+                        for k in self.description["axes"]
+                    ],
                     [
                         "Settings",
                         grid(
                             "Settings",
-                            *[self.render_property(k) for k in self.description["properties"]],
+                            *[
+                                self.render_property(k)
+                                for k in self.description["properties"]
+                            ],
                         ),
                     ],
                     [
                         "Methods",
                         grid(
                             "Methods",
-                            *[self.render_method(k) for k in self.description["methods"]],
+                            *[
+                                self.render_method(k)
+                                for k in self.description["methods"]
+                            ],
                         ),
                     ],
                     # ['Connection', grid('Connection')],

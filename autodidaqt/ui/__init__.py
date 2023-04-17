@@ -431,7 +431,7 @@ def spin_box(
     else:
         widget = DoubleSpinBox(**kwargs)
 
-    widget.setRange(minimum, maximum)
+    widget.setRange(round(minimum), round(maximum))
 
     if value is not None:
         widget.subject.on_next(value)
