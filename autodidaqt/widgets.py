@@ -1,5 +1,6 @@
 import os
 from functools import partial
+from loguru import logger
 
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -14,7 +15,7 @@ from PyQt5.QtWidgets import (
     QSpinBox,
     QTextEdit,
     QWidget,
-    QApplication
+    QApplication,
 )
 from rx.subject import BehaviorSubject, Subject
 
@@ -53,7 +54,9 @@ class ComboBox(QComboBox, Subjective):
         if self.subject is None:
             self.subject = BehaviorSubject(self.currentData())
 
-        self.currentIndexChanged.connect(lambda: self.subject.on_next(self.currentText()))
+        self.currentIndexChanged.connect(
+            lambda: self.subject.on_next(self.currentText())
+        )
         self.subject.subscribe(self.update_ui)
 
     def update_ui(self, value):
@@ -126,11 +129,19 @@ class LineEdit(QLineEdit, Subjective):
         if value != self.text():
             self.setText(value)
 
-    
+
 class NumericEdit(QLineEdit, Subjective):
     validatedTextChanged = QtCore.pyqtSignal(str)
 
-    def __init__(self, *args, subject=None, process_on_next=None, validator:QtGui.QValidator=None, fallback_value=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        subject=None,
+        process_on_next=None,
+        validator: QtGui.QValidator = None,
+        fallback_value=None,
+        **kwargs,
+    ):
         super().__init__(*args)
 
         self.increment = kwargs.get("increment", 1.0)
@@ -140,7 +151,9 @@ class NumericEdit(QLineEdit, Subjective):
         self.process_on_next = process_on_next
 
         if validator is None:
-            self.setValidator(QtGui.QDoubleValidator({"bottom": -1e6, "top": 1e6, "decimals": 3}))
+            self.setValidator(
+                QtGui.QDoubleValidator({"bottom": -1e6, "top": 1e6, "decimals": 3})
+            )
         else:
             self.setValidator(validator)
 
@@ -151,13 +164,17 @@ class NumericEdit(QLineEdit, Subjective):
 
     def setText(self, a0: str) -> None:
         # Need to override this for validation
-        if self.validator() is not None and self.validator().validate(a0, 0)[0] != QtGui.QValidator.State.Acceptable:
+        if (
+            self.validator() is not None
+            and self.validator().validate(a0, 0)[0] != QtGui.QValidator.State.Acceptable
+        ):
+            logger.warning(f"Invalid input {a0} for {self}.")
             return
         # TODO: prevent execution for violation of input mask
         self.validatedTextChanged.emit(a0)
         return super().setText(a0)
 
-    def increment_value(self, amount:float)->None:
+    def increment_value(self, amount: float) -> None:
         try:
             value = float(self.text())
         except ValueError:
@@ -166,11 +183,17 @@ class NumericEdit(QLineEdit, Subjective):
         self.setText(str(value))
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
-        shift_pressed = a0.modifiers() & QtCore.Qt.ShiftModifier
+        def get_increment() -> float:
+            if a0.modifiers() & QtCore.Qt.ShiftModifier:
+                return self.increment * self.multiplier
+            elif a0.modifiers() & QtCore.Qt.ControlModifier:
+                return self.increment / self.multiplier
+            return self.increment
+
         if a0.key() == QtCore.Qt.Key_Up:
-            self.increment_value(self.increment * self.multiplier if shift_pressed else self.increment)
+            self.increment_value(get_increment())
         elif a0.key() == QtCore.Qt.Key_Down:
-            self.increment_value(-(self.increment * self.multiplier) if shift_pressed else -self.increment)
+            self.increment_value(-get_increment())
         return super().keyPressEvent(a0)
 
     def keyReleaseEvent(self, a0: QtGui.QKeyEvent) -> None:
@@ -184,24 +207,24 @@ class NumericEdit(QLineEdit, Subjective):
         elif a0.key() == QtCore.Qt.Key_Return and not self.hasAcceptableInput():
             self.setText(self.fixup(self.text()))
         return super().keyReleaseEvent(a0)
-    
+
     def focusOutEvent(self, a0: QtGui.QFocusEvent) -> None:
         if not self.hasAcceptableInput():
             self.setText(self.fixup(self.text()))
         return super().focusOutEvent(a0)
 
-    def fixup(self, value:str) -> str:
+    def fixup(self, value: str) -> str:
         try:
             value = float(value)
         except ValueError:
             return self.fallback_value
-        
+
         if self.validator() is not None:
             if value < self.validator().bottom():
                 return str(self.validator().bottom())
             elif value > self.validator().top():
                 return str(self.validator().top())
-        return str(value) # should never happen
+        return str(round(value))  # should never happen
 
 
 class RadioButton(QRadioButton, Subjective):
