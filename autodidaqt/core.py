@@ -33,7 +33,10 @@ from autodidaqt_common.remote.command import (
     WriteAxisCommand,
 )
 from autodidaqt_common.remote.config import RemoteConfiguration
-from autodidaqt_common.remote.middleware import TranslateCommandsMiddleware, WireMiddleware
+from autodidaqt_common.remote.middleware import (
+    TranslateCommandsMiddleware,
+    WireMiddleware,
+)
 from autodidaqt_common.remote.schema import RemoteApplicationState, TypeDefinition
 from dotenv import load_dotenv
 from loguru import logger
@@ -95,7 +98,9 @@ def parse_args() -> CommandLineConfig:
         config = CommandLineConfig(headless=parsed.headless)
 
         if parsed.nanomessage_uri is not None:
-            config.remote_config = RemoteConfiguration(ui_address=parsed.nanomessage_uri)
+            config.remote_config = RemoteConfiguration(
+                ui_address=parsed.nanomessage_uri
+            )
     except IndexError:
         config = CommandLineConfig()
 
@@ -162,7 +167,9 @@ class AutodiDAQtMainWindow(QMainWindow):
 
         # set layout
         self.win = QWidget()
-        self.win.resize(50, 50)  # smaller than minimum size, so will resize appropriately
+        self.win.resize(
+            50, 50
+        )  # smaller than minimum size, so will resize appropriately
 
         self.ui = {}
         with CollectUI(self.ui):
@@ -171,7 +178,9 @@ class AutodiDAQtMainWindow(QMainWindow):
                     vertical(
                         *[
                             button(
-                                "Restart {}".format(self.app.panel_definitions[panel_name].TITLE),
+                                "Restart {}".format(
+                                    self.app.panel_definitions[panel_name].TITLE
+                                ),
                                 id=f"restart-{panel_name}",
                             )
                             for panel_name in self.panel_order
@@ -180,7 +189,11 @@ class AutodiDAQtMainWindow(QMainWindow):
                     ),
                     vertical(
                         *[
-                            led(None, shape=Led.circle, id="indicator-{}".format(panel_name),)
+                            led(
+                                None,
+                                shape=Led.circle,
+                                id="indicator-{}".format(panel_name),
+                            )
                             for panel_name in self.panel_order
                         ],
                         spacing=8,
@@ -222,7 +235,11 @@ def make_user_data_dataclass(profile_field: Optional[Any]) -> type:
 
     return make_dataclass(
         "UserData",
-        [*profile_fields, ("user", str, "global-user"), ("session_name", str, "global-session"),],
+        [
+            *profile_fields,
+            ("user", str, "global-user"),
+            ("session_name", str, "global-session"),
+        ],
     )
 
 
@@ -278,7 +295,8 @@ class AutodiDAQt:
 
         if managed_instruments:
             if not any(
-                issubclass(panel_def, InstrumentManager) for panel_def in panel_definitions.values()
+                issubclass(panel_def, InstrumentManager)
+                for panel_def in panel_definitions.values()
             ):
                 panel_definitions["_instrument_manager"] = InstrumentManager
 
@@ -325,10 +343,14 @@ class AutodiDAQt:
             return {
                 "driver_init": {
                     "args": self.config.instruments.nested_get(
-                        [instrument_key, "initialize", "args"], [], safe_early_terminate=True,
+                        [instrument_key, "initialize", "args"],
+                        [],
+                        safe_early_terminate=True,
                     ),
                     "kwargs": self.config.instruments.nested_get(
-                        [instrument_key, "initialize", "kwargs"], {}, safe_early_terminate=True,
+                        [instrument_key, "initialize", "kwargs"],
+                        {},
+                        safe_early_terminate=True,
                     ),
                 },
             }
@@ -341,7 +363,9 @@ class AutodiDAQt:
         self.managed_instrument_classes = managed_instruments
 
         if DEBUG is not None and self.config.DEBUG != DEBUG:
-            logger.warning(f"Overwriting the value of DEBUG from configuration, using {DEBUG}")
+            logger.warning(
+                f"Overwriting the value of DEBUG from configuration, using {DEBUG}"
+            )
             self.config.DEBUG = DEBUG
 
     def configure_as_headless(self, config: CommandLineConfig):
@@ -351,7 +375,9 @@ class AutodiDAQt:
     def experiment(self):
         from autodidaqt.experiment import Experiment
 
-        candidates = [actor for actor in self.actors.values() if isinstance(actor, Experiment)]
+        candidates = [
+            actor for actor in self.actors.values() if isinstance(actor, Experiment)
+        ]
         assert len(candidates) == 1
         return candidates[0]
 
@@ -440,12 +466,16 @@ class AutodiDAQt:
 
         n_tasks_to_cancel = len(asyncio.all_tasks(loop=loop)) - 1
         if n_tasks_to_cancel > 1:
-            logger.warning(f"Cancelling tasks... {n_tasks_to_cancel} tasks remaining expected 1.")
+            logger.warning(
+                f"Cancelling tasks... {n_tasks_to_cancel} tasks remaining expected 1."
+            )
         else:
             logger.info("Cancelling tasks...")
 
         tasks = [
-            t for t in asyncio.all_tasks(loop=loop) if t is not asyncio.current_task(loop=loop)
+            t
+            for t in asyncio.all_tasks(loop=loop)
+            if t is not asyncio.current_task(loop=loop)
         ]
 
         cancellable = []
@@ -475,7 +505,9 @@ class AutodiDAQt:
             self.app_root
             / self.config.logging_directory
             / self.config.log_format.format(
-                user="global-log", time=self.meta.datetime_started, session="global-session",
+                user="global-log",
+                time=self.meta.datetime_started,
+                session="global-session",
             )
         )
         self._log_handler = logger.add(self.log_file)
@@ -495,7 +527,9 @@ class AutodiDAQt:
 
     @property
     def file(self):
-        return getattr(sys.modules[self.import_name], "__file__", appdirs.user_config_dir())
+        return getattr(
+            sys.modules[self.import_name], "__file__", appdirs.user_config_dir()
+        )
 
     @property
     def search_paths(self):
@@ -507,7 +541,9 @@ class AutodiDAQt:
         ]
 
     def extract_from_dotenv(self):
-        dotenv_files = list(itertools.chain(*[p.glob(".env") for p in self.search_paths]))
+        dotenv_files = list(
+            itertools.chain(*[p.glob(".env") for p in self.search_paths])
+        )
         if dotenv_files:
             logger.info(f"Found dotenv files {dotenv_files}. Loading...")
             load_dotenv(str(dotenv_files[0]))
@@ -529,17 +565,24 @@ class AutodiDAQt:
             # Only really need 30ish FPS UI update rate
             await asyncio.sleep(0.03)
             self.qt_app.processEvents()
+            # TODO: figure this out
+            # await asyncio.gather(asyncio.sleep(0.03), asyncio.create_task(self.qt_app.processEvents()))
 
     async def master(self):
         logger.info("Started async loop.")
         self.messages = asyncio.Queue()
 
         if self.cli_config.remote_config:
-            logger.info("Running in headless or remoted configuration. Setting up remote")
+            logger.info(
+                "Running in headless or remoted configuration. Setting up remote"
+            )
             self.remote = RemoteLink(
                 self,
                 self.cli_config.remote_config,
-                middleware=[TranslateCommandsMiddleware(), WireMiddleware(),],
+                middleware=[
+                    TranslateCommandsMiddleware(),
+                    WireMiddleware(),
+                ],
             )
             logger.info("Running remote .prepare")
             await self.remote.prepare()
@@ -605,7 +648,8 @@ class AutodiDAQt:
             await self.experiment.messages.put(message)
         elif isinstance(message, GetAllStateCommand):
             ins_state = {
-                k: ins.collect_remote_state() for k, ins in self.managed_instruments.items()
+                k: ins.collect_remote_state()
+                for k, ins in self.managed_instruments.items()
             }
 
             extra_types = TypeDefinition.all_types()
@@ -633,13 +677,19 @@ class AutodiDAQt:
         return deepcopy(
             AutodiDAQtStateAtRest(
                 autodidaqt_state=AppState(
-                    user=self.user.user, session_name=self.user.session_name, profile=profile,
+                    user=self.user.user,
+                    session_name=self.user.session_name,
+                    profile=profile,
                 ),
                 schema=ser_schema,
-                panels={k: p.collect_state() for k, p in self.main_window.open_panels.items()},
+                panels={
+                    k: p.collect_state()
+                    for k, p in self.main_window.open_panels.items()
+                },
                 actors={k: a.collect_state() for k, a in self.actors.items()},
                 managed_instruments={
-                    k: ins.collect_state() for k, ins in self.managed_instruments.items()
+                    k: ins.collect_state()
+                    for k, ins in self.managed_instruments.items()
                 },
             )
         )
@@ -672,7 +722,9 @@ class AutodiDAQt:
 
         while True:
             state_filename = find_newest_state_filename(self)
-            logger.info(f"Found candidate application state: {state_filename}... loading.")
+            logger.info(
+                f"Found candidate application state: {state_filename}... loading."
+            )
             if not state_filename:
                 state = self.collect_state()
                 self.receive_state(state)
@@ -739,7 +791,9 @@ class AutodiDAQt:
         }.get(sys.platform, lambda: (signal.SIGHUP, signal.SIGTERM, signal.SIGINT))()
         for s in signal_set:
             logger.info("Installing shutdown signal handler for signal {s}")
-            loop.add_signal_handler(s, lambda s=s: loop.create_task(self.shutdown(loop, s)))
+            loop.add_signal_handler(
+                s, lambda s=s: loop.create_task(self.shutdown(loop, s))
+            )
 
         logger.info("Setting custom exception handler on async loop")
         loop.set_exception_handler(self.handle_exception)
@@ -759,7 +813,9 @@ class AutodiDAQt:
         loop = self.configure_event_loop()
 
         main_window_cls = (
-            AutodiDAQtMainWindowHeadless if self.cli_config.headless else AutodiDAQtMainWindow
+            AutodiDAQtMainWindowHeadless
+            if self.cli_config.headless
+            else AutodiDAQtMainWindow
         )
         self.main_window = main_window_cls(loop=loop, app=self)
 
@@ -773,4 +829,4 @@ class AutodiDAQt:
         finally:
             loop.close()
             logger.info("Closed autodidaqt successfully.")
-            # sys.exit(0)
+            sys.exit(0)
