@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Optional
 
 import argparse
 import asyncio
@@ -270,9 +270,9 @@ class AutodiDAQt:
     def __init__(
         self,
         import_name,
-        panel_definitions: Optional[Dict[str, Type[Panel]]] = None,
-        actors: Optional[Dict[str, Type[Actor]]] = None,
-        managed_instruments: Optional[Dict[str, Type[ManagedInstrument]]] = None,
+        panel_definitions: Optional[Dict[str, type[Panel]]] = None,
+        actors: Optional[Dict[str, type[Actor]]] = None,
+        managed_instruments: Optional[Dict[str, type[ManagedInstrument]]] = None,
         DEBUG: Optional[bool] = None,
     ):
         import autodidaqt.globals

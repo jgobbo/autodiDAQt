@@ -1,6 +1,12 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import asyncio
 
 from autodidaqt.state import ActorState
+
+if TYPE_CHECKING:
+    from autodidaqt import AutodiDAQt
 
 __all__ = ("Actor", "EchoActor", "MessagingActor")
 
@@ -12,7 +18,7 @@ class StopException(Exception):
 class Actor:
     panel_cls = None
 
-    def __init__(self, app):
+    def __init__(self, app: AutodiDAQt):
         self.app = app
         self.messages = None
 
@@ -41,9 +47,9 @@ class Actor:
 class MessagingActor(Actor):
     async def run(self):
         """
-            Actions that should be run repeatedly should be put in run_step. 
-            Only overwrite run (with a super().run() call included) for tasks done once. 
-            This probably never happens since these tasks should just be included in an actors prepare function.
+        Actions that should be run repeatedly should be put in run_step.
+        Only overwrite run (with a super().run() call included) for tasks done once.
+        This probably never happens since these tasks should just be included in an actors prepare function.
         """
         try:
             while True:

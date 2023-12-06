@@ -2,7 +2,8 @@ from typing import List, Optional, Tuple, Union
 
 import asyncio
 import contextlib
-import datetime
+
+from pandas import Timestamp
 import inspect
 import itertools
 from asyncio import gather, get_running_loop, sleep
@@ -74,6 +75,11 @@ ES = schema.ExperimentStates
 T = schema.ExperimentTransitions
 
 
+def now_timestamp():
+    # need pandas nanosecond precision timestamps to silence an xarray UserWarning
+    return Timestamp.now()
+
+
 class Experiment(FSM):
     STARTING_STATE = ES.Startup
     STATE_TABLE = {
@@ -108,7 +114,9 @@ class Experiment(FSM):
 
     def collect_remote_state(self) -> schema.RemoteExperimentState:
         return schema.RemoteExperimentState(
-            scan_methods=[schema.TypeDefinition.from_type(s).id for s in self.scan_methods],
+            scan_methods=[
+                schema.TypeDefinition.from_type(s).id for s in self.scan_methods
+            ],
             fsm_state=self.state,
         )
 
@@ -133,7 +141,8 @@ class Experiment(FSM):
 
             # TODO fix this to be safer
             sequence = config.sequence(
-                self, **{s: ScopedAccessRecorder(s) for s in all_scopes if s != "experiment"},
+                self,
+                **{s: ScopedAccessRecorder(s) for s in all_scopes if s != "experiment"},
             )
         else:
             is_inverted = False
@@ -192,10 +201,16 @@ class Experiment(FSM):
             else:
                 self.current_run = self.build_manual_run()
 
+            for instrument in self.app.managed_instruments.values():
+                if instrument.pause_on_start:
+                    instrument.pause_live_reading = True
+
     async def enter_running(self, *_):
         self.ui.enter_running()
 
-    def plot(self, dependent: str, independent: List[str], name, dep_processor=None, **kwargs):
+    def plot(
+        self, dependent: str, independent: List[str], name, dep_processor=None, **kwargs
+    ):
         assert self.current_run is not None
         if isinstance(independent, str):
             independent = [independent]
@@ -222,7 +237,10 @@ class Experiment(FSM):
 
         independent = {AxisPath.to_tokenized_string(k): v for k, v in independent}
         dependent = {AxisPath.to_tokenized_string(k): v for k, v in dependent}
-        collation_info = CollationInfo(independent=independent, dependent=dependent,)
+        collation_info = CollationInfo(
+            independent=independent,
+            dependent=dependent,
+        )
         self.collation = collation_info.to_collation()
         self.app.send_to_remote(collation_info)
 
@@ -241,14 +259,20 @@ class Experiment(FSM):
 
     def comment(self, message):
         self.current_run.metadata.append(
-            {"type": "comment", "content": message, "time": datetime.datetime.now(),}
+            {
+                "type": "comment",
+                "content": message,
+                "time": now_timestamp(),
+            }
         )
 
     def clear_command_queue(self):
         while True:
             try:
                 m = self.remote_commands.get_nowait()
-                logger.warning(f"Unhandled remote command: {m}. Experiment triggered stop early.")
+                logger.warning(
+                    f"Unhandled remote command: {m}. Experiment triggered stop early."
+                )
                 self.remote_commands.task_done()
             except asyncio.QueueEmpty:
                 return
@@ -261,11 +285,13 @@ class Experiment(FSM):
 
         await self.save()
         self.ui.running_to_idle()
-        if self.autoplay:
-            if self.scan_deque:
-                self.messages.put_nowait(T.Start)
-            else:
-                self.autoplay = False
+        if self.autoplay and self.scan_deque:
+            self.messages.put_nowait(T.Start)
+        else:
+            self.autoplay = False  # should always be False at the end
+            for instrument in self.app.managed_instruments.values():
+                if instrument.pause_on_start:
+                    instrument.pause_live_reading = False
 
     async def running_to_shutdown(self, *_):
         await self.save()
@@ -281,11 +307,25 @@ class Experiment(FSM):
         if isinstance(remote_command, ReadAxisCommand):
             # format into the step format and then use that
             path = AxisPath.to_tuple(remote_command.axis_path)
-            await self.take_step([{"read": None, "path": path[1:], "scope": path[0],}])
+            await self.take_step(
+                [
+                    {
+                        "read": None,
+                        "path": path[1:],
+                        "scope": path[0],
+                    }
+                ]
+            )
         elif isinstance(remote_command, WriteAxisCommand):
             path = AxisPath.to_tuple(remote_command.axis_path)
             await self.take_step(
-                [{"write": remote_command.value.to_instance(), "path": path[1:], "scope": path[0],}]
+                [
+                    {
+                        "write": remote_command.value.to_instance(),
+                        "path": path[1:],
+                        "scope": path[0],
+                    }
+                ]
             )
         else:
             logger.error(f"Unknown remote command: {remote_command}. Skipping...")
@@ -306,7 +346,10 @@ class Experiment(FSM):
         else:
             async for data in self.current_run.sequence:
                 self.current_run.steps_taken.append(
-                    {"step": self.current_run.step, "time": datetime.datetime.now(),}
+                    {
+                        "step": self.current_run.step,
+                        "time": now_timestamp(),
+                    }
                 )
                 self.current_run.step += 1
                 for qual_name, value in data.items():
@@ -322,7 +365,7 @@ class Experiment(FSM):
         return axis.type_def
 
     def record_data(self, qual_name: Tuple, value: any):
-        now = datetime.datetime.now()
+        now = now_timestamp()
         self.current_run.daq_values[qual_name].append(
             {
                 "data": value,
@@ -365,7 +408,8 @@ class Experiment(FSM):
                 all_scopes = {
                     k: v
                     for k, v in itertools.chain(
-                        self.app.actors.items(), self.app.managed_instruments.items(),
+                        self.app.actors.items(),
+                        self.app.managed_instruments.items(),
                     )
                     if k != "experiment"
                 }
@@ -405,7 +449,7 @@ class Experiment(FSM):
             self.record_data(qual_name, write if set is None else set)
 
     async def take_step(self, step):
-        self.current_run.steps_taken.append({"step": step, "time": datetime.datetime.now()})
+        self.current_run.steps_taken.append({"step": step, "time": now_timestamp()})
 
         if isinstance(step, dict):
             step = [step]
@@ -493,10 +537,10 @@ class Experiment(FSM):
     @contextlib.contextmanager
     def point(self):
         logger.trace(f"Start point {self.current_run.point}")
-        self.current_run.point_started.append(datetime.datetime.now())
+        self.current_run.point_started.append(now_timestamp())
         yield
         self.current_run.point += 1
-        self.current_run.point_ended.append(datetime.datetime.now())
+        self.current_run.point_ended.append(now_timestamp())
 
         if self.ui is not None:
             self.ui.soft_update()

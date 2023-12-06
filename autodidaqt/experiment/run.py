@@ -36,7 +36,7 @@ def daq_to_timesequence_xarray(stream_name: str, data_stream) -> xr.Dataset:
     step, points, data, time = [
         [p[name] for p in data_stream] for name in ["step", "point", "data", "time"]
     ]
-    time = np.vectorize(np.datetime64)(np.asarray(time))
+    time = np.asarray(time)
     time_dim = f"{stream_name}-time"
 
     peeked = data[0]
@@ -54,7 +54,7 @@ def daq_to_timesequence_xarray(stream_name: str, data_stream) -> xr.Dataset:
         data_coords[time_dim] = time
         data_dims = [f"dim_{i}" for i in range(len(peeked.shape))] + [time_dim]
     else:
-        data = np.asarray(data)
+        data = np.asarray(data, dtype=object)
         data_coords = {f"{stream_name}-time": time}
         data_dims = [time_dim]
 
@@ -67,7 +67,9 @@ def daq_to_timesequence_xarray(stream_name: str, data_stream) -> xr.Dataset:
             f"{stream_name}-point": xr.DataArray(
                 np.asarray(points), coords=time_coords, dims=[time_dim]
             ),
-            f"{stream_name}-data": xr.DataArray(data, coords=data_coords, dims=data_dims),
+            f"{stream_name}-data": xr.DataArray(
+                data, coords=data_coords, dims=data_dims
+            ),
         }
     )
     return ds
@@ -112,21 +114,33 @@ class Run:
 
     def save_directory(self, app):
         directory = Path(
-            str(app.app_root / app.config.data_directory / app.config.data_format).format(
+            str(
+                app.app_root / app.config.data_directory / app.config.data_format
+            ).format(
                 user=self.user,
                 session=self.session,
                 run=self.number,
-                time=datetime.datetime.now().time().isoformat().split(".")[0].replace(":", "-"),
+                time=datetime.datetime.now()
+                .time()
+                .isoformat()
+                .split(".")[0]
+                .replace(":", "-"),
                 date=datetime.date.today().isoformat(),
             )
         )
 
         if directory.exists():
-            warnings.warn("Save directory already exists. Postfixing with the current time.")
+            warnings.warn(
+                "Save directory already exists. Postfixing with the current time."
+            )
             directory = (
                 str(directory)
                 + "_"
-                + datetime.datetime.now().time().isoformat().replace(".", "-").replace(":", "-")
+                + datetime.datetime.now()
+                .time()
+                .isoformat()
+                .replace(".", "-")
+                .replace(":", "-")
             )
             directory = Path(directory)
 

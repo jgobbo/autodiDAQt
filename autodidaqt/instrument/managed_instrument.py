@@ -5,7 +5,11 @@ import datetime
 
 from autodidaqt_common.path import AxisPath
 from autodidaqt_common.remote.command import AxisRead, ReadAxisCommand, WriteAxisCommand
-from autodidaqt_common.remote.schema import RemoteAxisState, RemoteDriverInfo, RemoteInstrumentState
+from autodidaqt_common.remote.schema import (
+    RemoteAxisState,
+    RemoteDriverInfo,
+    RemoteInstrumentState,
+)
 from loguru import logger
 
 from autodidaqt.actor import MessagingActor
@@ -44,11 +48,21 @@ class ScanRecorder(AccessRecorder):
 
 
 class ManagedInstrument(MessagingActor):
+    """
+    An instrument managed by the autodidaqt app. This is the base class for all instruments.
+
+    Specify a driver class and an optional panel class. Set pause_on_start to True in your subclass to
+    automatically pause the instrument on scan start and unpause after scan completion.
+    """
+
     panel_cls = BasicInstrumentPanel
     panel = None
 
     driver_cls = None
     test_cls = None
+
+    pause_live_reading: bool = False
+    pause_on_start: bool = False
 
     profiles = {}
     proxy_methods = []
@@ -101,7 +115,9 @@ class ManagedInstrument(MessagingActor):
             panel_state = None
         return InstrumentState(
             axes={
-                k: [vs.collect_state() for vs in v] if isinstance(v, list) else v.collect_state()
+                k: [vs.collect_state() for vs in v]
+                if isinstance(v, list)
+                else v.collect_state()
                 for k, v in self.axes.items()
             },
             properties={},
@@ -156,7 +172,9 @@ class ManagedInstrument(MessagingActor):
         self.driver = (
             MockDriver()
             if simulate
-            else self.driver_cls(*driver_init.get("args", []), **driver_init.get("kwargs", {}))
+            else self.driver_cls(
+                *driver_init.get("args", []), **driver_init.get("kwargs", {})
+            )
         )
         if simulate:
             logger.warning(f"Simulating instrument: {type(self).__name__}")
@@ -169,10 +187,16 @@ class ManagedInstrument(MessagingActor):
 
         # AXES
         spec_names = [s for s in dir(self) if is_spec(s, kind=Specification)]
-        property_spec_names = [s for s in dir(self) if is_spec(s, kind=PropertySpecification)]
-        method_spec_names = [s for s in dir(self) if is_spec(s, kind=MethodSpecification)]
+        property_spec_names = [
+            s for s in dir(self) if is_spec(s, kind=PropertySpecification)
+        ]
+        method_spec_names = [
+            s for s in dir(self) if is_spec(s, kind=MethodSpecification)
+        ]
 
-        self.specification_ = {spec_name: getattr(self, spec_name) for spec_name in spec_names}
+        self.specification_ = {
+            spec_name: getattr(self, spec_name) for spec_name in spec_names
+        }
         for spec_name in spec_names:
             spec = getattr(self, spec_name)
             if not isinstance(spec, LogicalAxisSpecification):
@@ -193,7 +217,9 @@ class ManagedInstrument(MessagingActor):
             setattr(self, spec_name, spec.realize(spec_name, self.driver, self))
 
         # METHODS
-        self.methods_ = {spec_name: getattr(self, spec_name) for spec_name in method_spec_names}
+        self.methods_ = {
+            spec_name: getattr(self, spec_name) for spec_name in method_spec_names
+        }
         for spec_name in method_spec_names:
             spec = getattr(self, spec_name)
             setattr(self, spec_name, spec.realize(spec_name, self.driver, self))
@@ -241,7 +267,9 @@ class ManagedInstrument(MessagingActor):
             is_simulating=self.is_simulating,
             flat_axes=axes_state,
             driver_info=RemoteDriverInfo(self.driver.__class__.__name__),
-            methods_info={k: self.collect_remote_method_state(k, v) for k, v in self.methods},
+            methods_info={
+                k: self.collect_remote_method_state(k, v) for k, v in self.methods
+            },
             properties_info={
                 k: self.collect_remote_property_state(k, v) for k, v in self.properties
             },
