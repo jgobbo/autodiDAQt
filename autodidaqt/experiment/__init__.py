@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Generator
 
 import asyncio
 import contextlib
@@ -111,6 +111,11 @@ class Experiment(FSM):
     # related to remoting
     running_manually: bool = False
     remote_commands: asyncio.Queue
+
+    # for some reason, python advances generators when you .send() to them
+    # in order to send the results of a yield, we need to store the previous result
+    # and send it when we're ready to get the next yield
+    previous_result = None
 
     def collect_remote_state(self) -> schema.RemoteExperimentState:
         return schema.RemoteExperimentState(
@@ -336,9 +341,10 @@ class Experiment(FSM):
             return
 
         if self.current_run.is_inverted:
+            run_generator: Generator = self.current_run.sequence
             try:
-                next_step = next(self.current_run.sequence)
-                await self.take_step(next_step)
+                next_step = run_generator.send(self.previous_result)
+                self.previous_result = await self.take_step(next_step)
             except StopIteration:
                 # We're done! Time to save your data.
                 self.ui.soft_update(force=True, render_all=True)
@@ -433,20 +439,20 @@ class Experiment(FSM):
 
         if call is not None:
             args, kwargs = call
-            instrument(*args, **kwargs)
+            return instrument(*args, **kwargs)
         elif write is None and set is None:
             value = await instrument.read()
             self.record_data(qual_name, value)
+            return value
         else:
             if self.collation:
                 self.collation.receive(qual_name, write if set is None else set)
 
+            self.record_data(qual_name, write if set is None else set)
             if set is not None:
                 instrument.set(set)
             else:
-                await instrument.write(write)
-
-            self.record_data(qual_name, write if set is None else set)
+                return await instrument.write(write)
 
     async def take_step(self, step):
         self.current_run.steps_taken.append({"step": step, "time": now_timestamp()})
@@ -454,8 +460,9 @@ class Experiment(FSM):
         if isinstance(step, dict):
             step = [step]
 
-        await gather(*[self.perform_single_daq(**spec) for spec in step])
+        result = await gather(*[self.perform_single_daq(**spec) for spec in step])
         self.current_run.step += 1
+        return result
 
     @property
     def current_progress(self):
