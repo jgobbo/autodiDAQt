@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 import pyqtgraph as pg
-from rx.subject import BehaviorSubject, Subject
+from rx.subject import BehaviorSubject
 from scipy import interpolate
 
 from autodidaqt.utils import temporary_attrs
@@ -121,7 +121,9 @@ class CursorRegion(pg.LinearRegionItem):
     def __init__(self, *args, subject=None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.subject = subject or BehaviorSubject((self.lines[0].value(), self.lines[1].value()))
+        self.subject = subject or BehaviorSubject(
+            (self.lines[0].value(), self.lines[1].value())
+        )
         self.lines[1].setMovable(False)
         self.sigRegionChanged.connect(self.update_subject)
         self.subject.subscribe(self.update_from_subject)
@@ -164,11 +166,12 @@ class CursorRegion(pg.LinearRegionItem):
             self.lines[1].setValue(value + self._region_width)
             self.lines[0].setValue(value)
 
+
 class RescalableCursorRegion(CursorRegion):
-    def __init__(self, *args, swapMode='push', **kwargs):
+    def __init__(self, *args, swapMode="push", **kwargs):
         super().__init__(*args, **kwargs)
 
         self.lines[1].setMovable(True)
 
     def lineMoved(self, i):
-        pg.LinearRegionItem.lineMoved(self,i)
+        pg.LinearRegionItem.lineMoved(self, i)

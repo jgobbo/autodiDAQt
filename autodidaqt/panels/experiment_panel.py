@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING
 
 import dataclasses
 import datetime
@@ -23,6 +23,9 @@ from autodidaqt.ui import (
     tabs,
     vertical,
 )
+
+if TYPE_CHECKING:
+    from autodidaqt.experiment import Experiment
 
 __all__ = ("ExperimentPanel",)
 
@@ -281,7 +284,17 @@ class ExperimentPanel(Panel):
             for i in reversed(range(dynamic_layout.count())):
                 dynamic_layout.itemAt(i).widget().setParent(None)
 
-            key_sequences = self.experiment.current_run.daq_values.keys()
+            daq_value_types = [
+                type(values[0]["data"])
+                for values in self.experiment.current_run.daq_values.values()
+            ]
+            key_sequences = [
+                key_sequence
+                for key_sequence, value_type in zip(
+                    self.experiment.current_run.daq_values.keys(), daq_value_types
+                )
+                if value_type is not dict
+            ]
 
             # ('a', 0, 'b') -> 'a[0].b'
             display_names = {
@@ -302,9 +315,13 @@ class ExperimentPanel(Panel):
             self.user_pg_plots = {}
 
             self.plot_type = {
-                k: "image"
-                if isinstance(self.experiment.current_run.streaming_daq_ys[k][0], np.ndarray)
-                else "line"
+                k: (
+                    "image"
+                    if isinstance(
+                        self.experiment.current_run.streaming_daq_ys[k][0], np.ndarray
+                    )
+                    else "line"
+                )
                 for k in display_names
             }
             self.additional_plots = self.experiment.current_run.additional_plots
@@ -314,10 +331,15 @@ class ExperimentPanel(Panel):
                     dependent_is_image_like = False
                 else:
                     dependent_is_image_like = isinstance(
-                        self.experiment.current_run.streaming_daq_ys[additional_plot["dependent"]][0],
+                        self.experiment.current_run.streaming_daq_ys[
+                            additional_plot["dependent"]
+                        ][0],
                         np.ndarray,
                     )
-                assert not dependent_is_image_like and "Cannot plot 1D/2D vs 2D data currently"
+                assert (
+                    not dependent_is_image_like
+                    and "Cannot plot 1D/2D vs 2D data currently"
+                )
                 independent_is_image_like = len(additional_plot["independent"]) >= 2
 
                 if dependent_is_image_like:
@@ -347,7 +369,9 @@ class ExperimentPanel(Panel):
             tab_widgets = []
 
             for additional_plot in self.additional_plots:
-                name, ind, dep = [additional_plot[k] for k in ["name", "independent", "dependent"]]
+                name, ind, dep = [
+                    additional_plot[k] for k in ["name", "independent", "dependent"]
+                ]
                 widget, pg_widget, pg_plt = build_widget_for(name, self.plot_type[name])
                 self.built_widgets[name] = widget
                 self.user_pg_widgets[name] = pg_widget
@@ -355,7 +379,9 @@ class ExperimentPanel(Panel):
                 tab_widgets.append((name, widget))
 
             for k, display_name in display_names.items():
-                widget, pg_widget, pg_plt = build_widget_for(display_name, self.plot_type[k])
+                widget, pg_widget, pg_plt = build_widget_for(
+                    display_name, self.plot_type[k]
+                )
                 self.built_widgets[k] = widget
                 self.pg_widgets[k] = pg_widget
                 self.pg_plots[k] = pg_plt
@@ -383,18 +409,22 @@ class ExperimentPanel(Panel):
 
             for user_plot_name in self.additional_plots:
                 self.update_user_stream_plot(user_plot_name)
-            
 
         else:
             if viewing_plot < len(self.additional_plots):
-                self.update_user_stream_plot(
-                    list(self.additional_plots)[viewing_plot]
-                )
+                self.update_user_stream_plot(list(self.additional_plots)[viewing_plot])
             else:
-                self.update_data_stream_plot(*list(self.pg_plots.items())[viewing_plot-len(self.additional_plots)])
+                self.update_data_stream_plot(
+                    *list(self.pg_plots.items())[
+                        viewing_plot - len(self.additional_plots)
+                    ]
+                )
 
     def update_user_stream_plot(self, user_plot_key):
-        name, ind, dep, dep_processor = [user_plot_key[k] for k in ["name", "independent", "dependent", "dep_processor"]]
+        name, ind, dep, dep_processor = [
+            user_plot_key[k]
+            for k in ["name", "independent", "dependent", "dep_processor"]
+        ]
         pg_plot = self.user_pg_plots[name]
         if len(ind) > 1:
             last_index = user_plot_key.get("last_index", 0)
@@ -402,11 +432,18 @@ class ExperimentPanel(Panel):
             size = user_plot_key.get("size", np.abs)
 
             xss = np.stack(
-                [self.experiment.current_run.streaming_daq_ys[indi][last_index:] for indi in ind]
+                [
+                    self.experiment.current_run.streaming_daq_ys[indi][last_index:]
+                    for indi in ind
+                ]
             )
 
             ys = self.experiment.current_run.streaming_daq_ys[dep][last_index:]
-            ys = np.array([dep_processor(y) for y in ys]) if dep_processor is not None else ys
+            ys = (
+                np.array([dep_processor(y) for y in ys])
+                if dep_processor is not None
+                else ys
+            )
 
             user_plot_key["last_index"] = last_index + len(ys)
 
@@ -415,7 +452,7 @@ class ExperimentPanel(Panel):
                 if color:
                     s["color"] = color(y)
                 return s
-            
+
             pg_plot.addPoints([make_spot(i, y) for i, y in enumerate(ys)])
         else:
             xs, ys = (
@@ -431,7 +468,7 @@ class ExperimentPanel(Panel):
         )
 
         if self.plot_type[k] == "image":
-            if ys[-1].size != 0: # there's probably a more robust way to do this
+            if ys[-1].size != 0:  # there's probably a more robust way to do this
                 pg_plot.setImage(ys[-1])
         else:
             assert self.plot_type[k] == "line"
@@ -463,12 +500,14 @@ class ExperimentPanel(Panel):
         self.timing_ui = {}
 
         with CollectUI(self.timing_ui):
-            timing_group = group(label("N Points: {}".format(0), id="timing-label"), label="Timing")
+            timing_group = group(
+                label("N Points: {}".format(0), id="timing-label"), label="Timing"
+            )
 
         return timing_group
 
     def layout(self):
-        experiment = self.experiment
+        experiment: "Experiment" = self.experiment
         self.experiment.ui = self
         scan_methods = experiment.scan_methods
 

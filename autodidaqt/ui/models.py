@@ -5,7 +5,12 @@ import contextlib
 from PyQt5.QtCore import QAbstractListModel, QAbstractTableModel, QModelIndex, Qt
 from PyQt5.QtWidgets import QAbstractItemView
 
-from autodidaqt.reactive_utils import RxListPattern, RxTablePattern, Transaction, TransactionKind
+from autodidaqt.reactive_utils import (
+    RxListPattern,
+    RxTablePattern,
+    Transaction,
+    TransactionKind,
+)
 
 
 class DeferredAttachmentModel:
@@ -87,7 +92,11 @@ class RxTableModel(DeferredAttachmentModel, QAbstractTableModel):
         row = index.row()
         column = index.column()
 
-        if 0 <= row < self.rowCount() and 0 <= column < self.columnCount() and index.isValid():
+        if (
+            0 <= row < self.rowCount()
+            and 0 <= column < self.columnCount()
+            and index.isValid()
+        ):
             if role == Qt.DisplayRole:
                 return str(self.cached_data[row][column])
 

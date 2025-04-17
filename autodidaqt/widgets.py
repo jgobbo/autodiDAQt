@@ -15,7 +15,6 @@ from PyQt5.QtWidgets import (
     QSpinBox,
     QTextEdit,
     QWidget,
-    QApplication,
 )
 from rx.subject import BehaviorSubject, Subject
 
@@ -157,7 +156,9 @@ class NumericEdit(QLineEdit, Subjective):
         else:
             self.setValidator(validator)
 
-        self.fallback_value = self.text()
+        self.n_decimals = self.validator().decimals()
+
+        self.fallback_value = self.text() if fallback_value is None else fallback_value
         self.validatedTextChanged.connect(partial(setattr, self, "fallback_value"))
 
         self.validatedTextChanged.connect(self.subject.on_next)
@@ -180,6 +181,7 @@ class NumericEdit(QLineEdit, Subjective):
         except ValueError:
             return
         value += amount
+        value = round(value, self.n_decimals)
         self.setText(str(value))
 
     def keyPressEvent(self, a0: QtGui.QKeyEvent) -> None:
@@ -214,6 +216,7 @@ class NumericEdit(QLineEdit, Subjective):
         return super().focusOutEvent(a0)
 
     def fixup(self, value: str) -> str:
+        # TODO: add a red border when at boundaries
         try:
             value = float(value)
         except ValueError:

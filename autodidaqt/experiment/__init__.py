@@ -341,14 +341,18 @@ class Experiment(FSM):
             return
 
         if self.current_run.is_inverted:
-            run_generator: Generator = self.current_run.sequence
+            sequence_generator: Generator = self.current_run.sequence
             try:
-                next_step = run_generator.send(self.previous_result)
+                next_step = sequence_generator.send(self.previous_result)
                 self.previous_result = await self.take_step(next_step)
             except StopIteration:
                 # We're done! Time to save your data.
                 self.ui.soft_update(force=True, render_all=True)
                 self.messages.put_nowait(T.Stop)
+
+                # needs to be None at the start of a run for Generator.send to work
+                # TODO: find the best place to put this
+                self.previous_result = None
         else:
             async for data in self.current_run.sequence:
                 self.current_run.steps_taken.append(
