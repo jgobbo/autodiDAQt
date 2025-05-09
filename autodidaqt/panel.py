@@ -6,7 +6,14 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5.QtGui import QFontDatabase
-from PyQt5.QtWidgets import QApplication, QGridLayout, QLabel, QMainWindow, QPushButton, QWidget
+from PyQt5.QtWidgets import (
+    QApplication,
+    QGridLayout,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QWidget,
+)
 
 from autodidaqt.state import PanelState
 from autodidaqt.utils import default_stylesheet
@@ -17,7 +24,9 @@ __all__ = (
 )
 
 
-def figure(figsize=None, toolbar=None) -> Tuple[FigureCanvas, Figure, Optional[NavigationToolbar]]:
+def figure(
+    figsize=None, toolbar=None
+) -> Tuple[FigureCanvas, Figure, Optional[NavigationToolbar]]:
     built_figure = Figure(figsize=figsize)
     canvas = FigureCanvas(built_figure)
 
@@ -96,10 +105,10 @@ class Panel(QWidget):
         self.close_button.clicked.connect(self.do_close)
 
         if not defer_layout:
-            self.layout()
+            self.set_layout()
             self.resize(*self.SIZE)
 
-    def layout(self):
+    def set_layout(self):
         layout = QGridLayout()
 
         label = QLabel("A label")

@@ -36,6 +36,7 @@ With the line above, whenever the button with id='submit' is pressed, we will lo
 the most recent values of the inputs {'check','slider','file'} as a dictionary with these keys. This
 allows building PyQt5 "forms" without effort.
 """
+
 from typing import Any, Dict, Hashable, List, Optional, Type, Union
 
 import enum
@@ -62,6 +63,7 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QVBoxLayout,
     QWidget,
+    QStackedWidget,
 )
 from pyqt_led import Led
 
@@ -81,6 +83,7 @@ __all__ = (
     "group",
     "label",
     "tabs",
+    "stack",
     "button",
     "check_box",
     "combo_box",
@@ -343,7 +346,16 @@ def tabs(*children, document_mode=True):
 
 
 @ui_builder
-def button(text, horiz_expand=False, *args):
+def stack(*children):
+    """Create a stack of widgets where only one is visible at a time."""
+    widget = QStackedWidget()
+    for child in children:
+        widget.addWidget(child)
+    return widget
+
+
+@ui_builder
+def button(text, horiz_expand=False, *args) -> PushButton:
     button = PushButton(text, *args)
 
     if horiz_expand:
@@ -464,11 +476,14 @@ def led(*args, **kwargs):
 def numeric_input(
     value=0,
     input_type: type = float,
-    *args,
     subject=None,
     validator_settings=None,
+    increment: float = 1.0,
+    multiplier: float = 5.0,
     **kwargs,
 ):
+    if input_type == int:
+        raise NotImplementedError()
     validators = {
         int: QtGui.QIntValidator,
         float: QtGui.QDoubleValidator,
@@ -488,10 +503,11 @@ def numeric_input(
     validator = validators.get(input_type, QtGui.QIntValidator)(**validator_settings)
     widget = NumericEdit(
         str(value),
-        *args,
         subject=subject,
         process_on_next=str,
         validator=validator,
+        increment=increment,
+        multiplier=multiplier,
         **kwargs,
     )
 

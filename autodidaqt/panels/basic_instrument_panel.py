@@ -432,7 +432,7 @@ class BasicInstrumentPanel(Panel):
         self.method_views.append(view)
         return view.layout()
 
-    def layout(self):
+    def set_layout(self):
         with CollectUI(self.ui):
             grid(
                 tabs(
