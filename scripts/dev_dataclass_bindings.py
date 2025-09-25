@@ -47,7 +47,7 @@ class TestPanel(Panel):
         print(self.a)
         print(self.b)
 
-    def layout(self):
+    def set_layout(self):
         ui = {}
         with CollectUI(ui):
             vertical(

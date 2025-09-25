@@ -9,7 +9,7 @@ from autodidaqt.ui import CollectUI, button, label, table_view, vertical
 class TestPanel(Panel):
     SIZE = (1200, 800)
 
-    def layout(self):
+    def set_layout(self):
         ui = {}
 
         with CollectUI(ui):

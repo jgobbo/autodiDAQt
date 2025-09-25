@@ -175,7 +175,7 @@ def scroll_area(single_child):
 
 
 @ui_builder
-def layout(
+def set_layout(
     *children,
     layout_cls=None,
     widget=None,
@@ -221,11 +221,11 @@ def layout(
     return widget
 
 
-grid = functools.partial(layout, layout_cls=QGridLayout)
-vertical = functools.partial(layout, layout_cls=QVBoxLayout)
-horizontal = functools.partial(layout, layout_cls=QHBoxLayout)
+grid = functools.partial(set_layout, layout_cls=QGridLayout)
+vertical = functools.partial(set_layout, layout_cls=QVBoxLayout)
+horizontal = functools.partial(set_layout, layout_cls=QHBoxLayout)
 for fn in [grid, vertical, horizontal]:
-    functools.update_wrapper(fn, layout)
+    functools.update_wrapper(fn, set_layout)
 
 
 @ui_builder

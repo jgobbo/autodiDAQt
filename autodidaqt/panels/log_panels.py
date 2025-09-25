@@ -30,7 +30,7 @@ class LogPanel(Panel):
         self.lines.append(message)
         self.log_table.appendPlainText(message.strip())
 
-    def layout(self):
+    def set_layout(self):
         with open(self.app.log_file, "r") as logfile:
             self.lines = [l.strip() for l in logfile.readlines()[-self.MAX_HISTORY :]]
 

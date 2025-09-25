@@ -28,7 +28,9 @@ class InstrumentManager(Panel):
                 id=name,
                 app=self.app,
                 instrument_actor=self.app.managed_instruments[name],
-                instrument_description=self.app.managed_instruments[name].ui_specification,
+                instrument_description=self.app.managed_instruments[
+                    name
+                ].ui_specification,
             )
             self.app.managed_instruments[name].panel = w
             self._panels[name]["panel"] = w
@@ -64,7 +66,7 @@ class InstrumentManager(Panel):
         }
         self.panel_order = sorted(list(self._panels.keys()))
 
-        self.layout()
+        self.set_layout()
         self.resize(*self.SIZE)
         self.open_default_panels()
 
@@ -74,7 +76,7 @@ class InstrumentManager(Panel):
             if panel_cls.DEFAULT_OPEN:
                 self.launch_panel(panel_name)
 
-    def layout(self):
+    def set_layout(self):
         ui = {}
         with CollectUI(ui):
             grid(

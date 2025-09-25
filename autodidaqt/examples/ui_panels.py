@@ -1,15 +1,24 @@
 """
 A simple, reactive two panel (window) application.
 """
+
 from autodidaqt import AutodiDAQt, Panel
-from autodidaqt.ui import CollectUI, button, line_edit, radio_button, submit, text_edit, vertical
+from autodidaqt.ui import (
+    CollectUI,
+    button,
+    line_edit,
+    radio_button,
+    submit,
+    text_edit,
+    vertical,
+)
 
 
 class Monitor(Panel):
     DEFAULT_OPEN = True
     TITLE = "Monitor"
 
-    def layout(self):
+    def set_layout(self):
         ui = {}
         with CollectUI(ui):
             vertical(
@@ -34,7 +43,7 @@ class Log(Panel):
     DEFAULT_OPEN = True
     TITLE = "Logs"
 
-    def layout(self):
+    def set_layout(self):
         vertical(
             "Some logging information",
             text_edit("Initial log text."),

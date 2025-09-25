@@ -506,7 +506,7 @@ class ExperimentPanel(Panel):
 
         return timing_group
 
-    def layout(self):
+    def set_layout(self):
         experiment: "Experiment" = self.experiment
         self.experiment.ui = self
         scan_methods = experiment.scan_methods

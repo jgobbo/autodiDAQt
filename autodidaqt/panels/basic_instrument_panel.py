@@ -56,7 +56,7 @@ class MethodView:
     def __init__(self, method):
         self.method = method
 
-    def layout(self):
+    def set_layout(self):
         ui = {}
 
         with CollectUI(ui):
@@ -81,7 +81,7 @@ class ChoicePropertyView:
     def __init__(self, prop):
         self.prop = prop
 
-    def layout(self):
+    def set_layout(self):
         ui = {}
 
         inverse_mapping = dict(
@@ -129,7 +129,7 @@ class AxisView:
     def attach(self, ui):
         raise NotImplementedError
 
-    def layout(self):
+    def set_layout(self):
         raise NotImplementedError
 
 
@@ -216,7 +216,7 @@ class ProxiedAxisView(AxisView):
 
                     axis.subject.subscribe(close_over_jog_info(relative_speed))
 
-    def layout(self):
+    def set_layout(self):
         jog_controls = []
         live_plots = []
         if self.live_line_plottable:
@@ -299,7 +299,7 @@ class LogicalAxisView(AxisView):
         for view in self.sub_views:
             view.attach(ui)
 
-    def layout(self):
+    def set_layout(self):
         self.sub_axes = [
             getattr(self.axis, n) for n in self.axis.logical_coordinate_names
         ]
@@ -316,7 +316,7 @@ class LogicalAxisView(AxisView):
 
         return tabs(
             *[
-                [n, sub_view.layout()]
+                [n, sub_view.set_layout()]
                 for sub_view, n in zip(
                     self.sub_views, self.axis.logical_coordinate_names
                 )
@@ -394,7 +394,7 @@ class BasicInstrumentPanel(Panel):
 
         view = view_cls(description, path_to_axis)
         self.axis_views.append(view)
-        return view.layout()
+        return view.set_layout()
 
     def tab_for_axis_group(self, key):
         description = self.description["axes"][key]
@@ -419,7 +419,7 @@ class BasicInstrumentPanel(Panel):
 
         view = view_cls(ins_property)
         self.property_views.append(view)
-        return view.layout()
+        return view.set_layout()
 
     def render_method(self, key):
         method = self.description["methods"][key]
@@ -430,7 +430,7 @@ class BasicInstrumentPanel(Panel):
 
         view = view_cls(method)
         self.method_views.append(view)
-        return view.layout()
+        return view.set_layout()
 
     def set_layout(self):
         with CollectUI(self.ui):

@@ -22,7 +22,7 @@ class Custom(Panel):
     TITLE = "Dataclass Example"
     DEFAULT_OPEN = True
 
-    def layout(self):
+    def set_layout(self):
         self.value = CompositeType()
         ui = {}
         with CollectUI(ui):

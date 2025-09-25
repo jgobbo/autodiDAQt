@@ -12,7 +12,7 @@ from autodidaqt.ui import vertical
 class BasicPlot(Panel):
     SIZE = (800, 400)
 
-    def layout(self):
+    def set_layout(self):
         fig = self.register_figure("plot", toolbar=True)
 
         vertical(self.toolbars["plot"], self.canvases["plot"], widget=self)

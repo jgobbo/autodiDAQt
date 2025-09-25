@@ -56,7 +56,7 @@ class ManagedInstrument(MessagingActor):
     """
 
     panel_cls = BasicInstrumentPanel
-    panel = None
+    # panel: BasicInstrumentPanel | None = None
 
     driver_cls = None
     test_cls = None
@@ -115,9 +115,11 @@ class ManagedInstrument(MessagingActor):
             panel_state = None
         return InstrumentState(
             axes={
-                k: [vs.collect_state() for vs in v]
-                if isinstance(v, list)
-                else v.collect_state()
+                k: (
+                    [vs.collect_state() for vs in v]
+                    if isinstance(v, list)
+                    else v.collect_state()
+                )
                 for k, v in self.axes.items()
             },
             properties={},
