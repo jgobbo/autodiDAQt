@@ -2,7 +2,7 @@ import random
 
 import pytest
 
-from autodidaqt.data import ReactivePlot, reactive_frame
+from daquiri.data import ReactivePlot, reactive_frame
 
 from .common.experiments import Sink
 

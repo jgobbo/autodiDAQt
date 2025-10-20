@@ -1,8 +1,8 @@
 import rx.operators as ops
 
-from autodidaqt.panel import Panel, open_appless_panel
-from autodidaqt.reactive_utils import RxListPattern, Transaction
-from autodidaqt.ui import (
+from daquiri.panel import Panel, open_appless_panel
+from daquiri.reactive_utils import RxListPattern, Transaction
+from daquiri.ui import (
     CollectUI,
     button,
     label,

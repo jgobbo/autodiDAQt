@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import pytest
 
-from autodidaqt.collections import *
+from daquiri.collections import *
 
 
 def inc(x):

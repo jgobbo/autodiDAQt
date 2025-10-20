@@ -29,14 +29,14 @@ import pytest
 from _pytest.logging import caplog as _caplog
 from loguru import logger
 
-from autodidaqt import Actor, AutodiDAQt
-from autodidaqt.collections import AttrDict
-from autodidaqt.config import Config, MetaData, default_config_for_platform
-from autodidaqt.core import make_user_data_dataclass
-from autodidaqt.experiment.save import ZarrSaver
-from autodidaqt.instrument import ManagedInstrument
-from autodidaqt.mock import MockMotionController, MockScalarDetector
-from autodidaqt.state import AppState
+from daquiri import Actor, Daquiri
+from daquiri.collections import AttrDict
+from daquiri.config import Config, MetaData, default_config_for_platform
+from daquiri.core import make_user_data_dataclass
+from daquiri.experiment.save import ZarrSaver
+from daquiri.instrument import ManagedInstrument
+from daquiri.mock import MockMotionController, MockScalarDetector
+from daquiri.state import AppState
 
 from .common.experiments import BasicExperiment
 
@@ -57,7 +57,7 @@ def caplog(_caplog):
     logger.remove(handler_id)
 
 
-class Mockautodidaqt(AutodiDAQt):
+class Mockdaquiri(Daquiri):
     _instruments: Dict[str, ManagedInstrument]
     _actors: Dict[str, Actor]
 
@@ -113,12 +113,12 @@ class Mockautodidaqt(AutodiDAQt):
 @pytest.fixture(scope="function")
 def app():
     """
-    Generates a ``autodidaqt.core.autodidaqt`` like instance to act in place of an app.
+    Generates a ``daquiri.core.daquiri`` like instance to act in place of an app.
 
-    Returns: A ``Testautodidaqt`` instance.
+    Returns: A ``Testdaquiri`` instance.
     """
 
-    app = Mockautodidaqt()
+    app = Mockdaquiri()
     yield app
     app.cleanup()
 

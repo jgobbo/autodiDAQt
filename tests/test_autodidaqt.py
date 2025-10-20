@@ -1,16 +1,16 @@
 import pytest
 
-from autodidaqt.core import AutodiDAQtMainWindow
-from autodidaqt.panels import InstrumentManager
-from autodidaqt.state import AppState
+from daquiri.core import DaquiriMainWindow
+from daquiri.panels import InstrumentManager
+from daquiri.state import AppState
 
-from .conftest import Mockautodidaqt
+from .conftest import Mockdaquiri
 
 
-def test_autodidaqt_state_loading(app: Mockautodidaqt):
+def test_daquiri_state_loading(app: Mockdaquiri):
     state = app.collect_state()
 
-    state.autodidaqt_state = AppState(user="a", session_name="b", profile="c")
+    state.daquiri_state = AppState(user="a", session_name="b", profile="c")
 
     app.receive_state(state)
 
@@ -18,9 +18,9 @@ def test_autodidaqt_state_loading(app: Mockautodidaqt):
     assert app.user.session_name == "b"
 
 
-def test_autodidaqt_main_window_opens(qtbot, app: Mockautodidaqt):
+def test_daquiri_main_window_opens(qtbot, app: Mockdaquiri):
     app.init_with(panels={"_instrument_manager": InstrumentManager})
-    main_window = AutodiDAQtMainWindow(loop=None, app=app)
+    main_window = DaquiriMainWindow(loop=None, app=app)
     main_window.show()
     qtbot.add_widget(main_window)
 

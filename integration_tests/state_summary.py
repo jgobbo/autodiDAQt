@@ -1,11 +1,11 @@
 from multiprocessing import Process
 
-from autodidaqt_common.remote.command import GetAllStateCommand
-from autodidaqt_common.remote.config import RemoteConfiguration
+from daquiri_common.remote.command import GetAllStateCommand
+from daquiri_common.remote.config import RemoteConfiguration
 
-from autodidaqt.core import CommandLineConfig
-from autodidaqt.examples.scanning_experiment_revisited import app
-from autodidaqt.remote.scheduler import PairScheduler
+from daquiri.core import CommandLineConfig
+from daquiri.examples.scanning_experiment_revisited import app
+from daquiri.remote.scheduler import PairScheduler
 
 remote_config = RemoteConfiguration("tcp://127.0.0.1:13133")
 

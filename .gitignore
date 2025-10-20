@@ -41,6 +41,6 @@ out/
 logs/
 
 *.webm
-autodidaqt/examples/config.json
+daquiri/examples/config.json
 
 node_modules/

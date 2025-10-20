@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
-from autodidaqt.panel import Panel, open_appless_panel
-from autodidaqt.ui import (
+from daquiri.panel import Panel, open_appless_panel
+from daquiri.ui import (
     CollectUI,
     RenderAs,
     bind_dataclass,

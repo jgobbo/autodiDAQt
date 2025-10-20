@@ -1,37 +1,37 @@
 =========
- autodidaqt
+ daquiri
 =========
 
 |test_status| |coverage| |docs_status| 
 
 |example|
 
-.. |docs_status| image:: https://readthedocs.org/projects/autodidaqt/badge/?version=latest&style=flat
-   :target: https://autodidaqt.readthedocs.io/en/latest/
-.. |coverage| image:: https://codecov.io/gh/chstan/autodidaqt/branch/master/graph/badge.svg?token=8M5ON9HZL2
-   :target: https://codecov.io/gh/chstan/autodidaqt
-.. |example| image:: docs/source/_static/autodidaqt-example.gif
-.. |test_status| image:: https://github.com/chstan/autodidaqt/workflows/CI%20with%20pytest/badge.svg?branch=master
-   :target: https://github.com/chstan/autodidaqt/actions
+.. |docs_status| image:: https://readthedocs.org/projects/daquiri/badge/?version=latest&style=flat
+   :target: https://daquiri.readthedocs.io/en/latest/
+.. |coverage| image:: https://codecov.io/gh/chstan/daquiri/branch/master/graph/badge.svg?token=8M5ON9HZL2
+   :target: https://codecov.io/gh/chstan/daquiri
+.. |example| image:: docs/source/_static/daquiri-example.gif
+.. |test_status| image:: https://github.com/chstan/daquiri/workflows/CI%20with%20pytest/badge.svg?branch=master
+   :target: https://github.com/chstan/daquiri/actions
 
 
-autodidaqt := DAQ + UI generation + Reactivity + Instruments
+daquiri := DAQ + UI generation + Reactivity + Instruments
 
 You should be spending your time designing and running experiments,
 not your DAQ software.
 
-autodidaqt is a nuts and bolts included framework for scientific data acquisition (DAQ),
+daquiri is a nuts and bolts included framework for scientific data acquisition (DAQ),
 designed for rapid prototyping and the challenging DAQ environment of angle resolved
 photoemission spectroscopy. If you specify how to sequence motions and data collection,
-autodidaqt can manage the user interface, talking to and managing instruments,
+daquiri can manage the user interface, talking to and managing instruments,
 plotting interim data, data collation, and IO for you.
 
-autodidaqt also has logging and notification support built in and can let you know
+daquiri also has logging and notification support built in and can let you know
 over email or Slack when your experiment finishes (successfully or not!).
 
-If autodidaqt doesn't do exactly what you need, get in contact with us or
+If daquiri doesn't do exactly what you need, get in contact with us or
 check out the examples. There's a good chance that if it isn't built in,
-autodidaqt is flexible enough to support your use case.
+daquiri is flexible enough to support your use case.
 
 
 Requirements
@@ -46,21 +46,21 @@ Features
 Automated DAQ
 -------------
 
-autodidaqt wraps instruments and data sources in a uniform interface, if you specify how
-to sequence motion and acquisition, autodidaqt handles async collection, IO, and visualizing
+daquiri wraps instruments and data sources in a uniform interface, if you specify how
+to sequence motion and acquisition, daquiri handles async collection, IO, and visualizing
 your data as it is acquired.
 
 UI Generation
 -------------
 
-autodidaqt using PyQt and Qt5 to generate UIs for your experiments. It also
-provides simple bindings (autodidaqt.ui) that make making managing the day to day
+daquiri using PyQt and Qt5 to generate UIs for your experiments. It also
+provides simple bindings (daquiri.ui) that make making managing the day to day
 of working on PyQt simpler, if you need to do UI scripting of your own.
 
 It also ships with a window manager that you can register your windows against,
 making it seamless to add extra functionality to your experiments.
 
-The autodidaqt UI bindings are wrapped to publish as RxPY observables, making it easier
+The daquiri UI bindings are wrapped to publish as RxPY observables, making it easier
 to integrate your PyQT UI into a coherent asynchronous application.
 
 Installation
@@ -68,7 +68,7 @@ Installation
 
 ::
 
-  $ pip install autodidaqt
+  $ pip install daquiri
 
 
 Usage
@@ -78,7 +78,7 @@ For usage examples, explore the scripts in the examples folder. You can run them
 
 ::
 
-  $ python -m autodidaqt.examples.[example_name]
+  $ python -m daquiri.examples.[example_name]
 
 
 replacing [example_name] with one of:
@@ -99,6 +99,6 @@ You can also get a list of all the available examples by running
 
 ::
 
-  $ python -m autodidaqt.examples
+  $ python -m daquiri.examples
 
 

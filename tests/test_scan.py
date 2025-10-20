@@ -1,7 +1,13 @@
 import pytest
 
-from autodidaqt.mock import MockMotionController
-from autodidaqt.scan import forwards_and_backwards, only, randomly, staircase_product, step_together
+from daquiri.mock import MockMotionController
+from daquiri.scan import (
+    forwards_and_backwards,
+    only,
+    randomly,
+    staircase_product,
+    step_together,
+)
 
 
 def test_randomly():
@@ -24,7 +30,11 @@ def test_forwards_and_backwards():
 
 def test_simple_scan_contents():
     dx = MockMotionController.scan("mc").stages[0]()
-    assert sorted(name for name, _, __ in dx.to_fields("x")) == ["n_x", "start_x", "stop_x"]
+    assert sorted(name for name, _, __ in dx.to_fields("x")) == [
+        "n_x",
+        "start_x",
+        "stop_x",
+    ]
 
     class HoldsData:
         n_x: int = 4

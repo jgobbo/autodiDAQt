@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from autodidaqt.experiment import Experiment
-from autodidaqt.mock import MockMotionController, MockScalarDetector
+from daquiri.experiment import Experiment
+from daquiri.mock import MockMotionController, MockScalarDetector
 
 __all__ = ["BasicScan", "UninvertedScan"]
 

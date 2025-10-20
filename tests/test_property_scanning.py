@@ -2,8 +2,8 @@ from copy import copy
 
 import pytest
 
-from autodidaqt.experiment import Experiment, ScopedAccessRecorder
-from autodidaqt.scan import scan
+from daquiri.experiment import Experiment, ScopedAccessRecorder
+from daquiri.scan import scan
 from tests.common.experiments import UILessExperiment
 
 from .common.instruments import PropertyInstrument
@@ -17,7 +17,13 @@ def test_scan_property_elements():
     fields = dsensitivity.to_fields(base_name="test")
     assert [x[0] for x in fields] == ["start_test", "stop_test"]
     assert [v.value for v in fields[0][1].__members__.values()] == list(range(1, 29))
-    assert [v for v in fields[0][1].__members__.keys()][:5] == ["0 V", "1 V", "2 V", "3 V", "4 V"]
+    assert [v for v in fields[0][1].__members__.keys()][:5] == [
+        "0 V",
+        "1 V",
+        "2 V",
+        "3 V",
+        "4 V",
+    ]
 
     fields = dcat.to_fields(base_name="test2")
     assert [x[0] for x in fields] == ["start_test2", "stop_test2"]

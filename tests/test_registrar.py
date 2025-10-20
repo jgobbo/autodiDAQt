@@ -1,6 +1,6 @@
 import pytest
 
-from autodidaqt.registrar import Registrar
+from daquiri.registrar import Registrar
 
 
 def test_registrar_collects_values():
@@ -8,7 +8,7 @@ def test_registrar_collects_values():
 
     @r.metadata("a")
     def pow(a, b):
-        return a ** b
+        return a**b
 
     assert r.collect_metadata() == {"a": []}
     pow(2, 3)

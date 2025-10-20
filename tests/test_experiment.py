@@ -3,12 +3,12 @@ from typing import Callable, Union
 import inspect
 
 import pytest
-from autodidaqt_common.remote.schema import ExperimentStates, ExperimentTransitions
+from daquiri_common.remote.schema import ExperimentStates, ExperimentTransitions
 
-from autodidaqt.experiment import AutoExperiment, Experiment
-from autodidaqt.experiment.save import ZarrSaver
-from autodidaqt.interlock import InterlockException
-from autodidaqt.scan import scan
+from daquiri.experiment import AutoExperiment, Experiment
+from daquiri.experiment.save import ZarrSaver
+from daquiri.interlock import InterlockException
+from daquiri.scan import scan
 from tests.common.experiments import UninvertedExperiment
 
 from .common.experiments import BasicExperiment, UILessAutoExperiment, UILessExperiment

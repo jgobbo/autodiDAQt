@@ -6,8 +6,8 @@ import pytest
 from PyQt5 import QtCore
 from pytestqt.qtbot import QtBot
 
-from autodidaqt.ui import *
-from autodidaqt.widgets import ComboBox, DoubleSpinBox, LineEdit, SpinBox
+from daquiri.ui import *
+from daquiri.widgets import ComboBox, DoubleSpinBox, LineEdit, SpinBox
 
 
 def test_ui_collection(qtbot: QtBot):

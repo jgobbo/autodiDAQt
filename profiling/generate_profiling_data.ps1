@@ -3,7 +3,7 @@ param([String]$rootDir)
 # activate conda
 (& "C:\Users\chsta\Miniconda3\Scripts\conda.exe" "shell.powershell" "hook") | Out-String | Invoke-Expression
 
-conda activate autodidaqt
+conda activate daquiri
 
 function GenerateProfilingData($inputFile) {
     pyinstrument --show-all -r html -o "./results/$($inputFile).html" $inputFile

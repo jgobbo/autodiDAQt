@@ -3,11 +3,11 @@ import enum
 import json
 
 import pytest
-from autodidaqt_common.enum import enum_mapping, enum_option_names
-from autodidaqt_common.json import RichEncoder
+from daquiri_common.enum import enum_mapping, enum_option_names
+from daquiri_common.json import RichEncoder
 
-from autodidaqt.collections import AttrDict
-from autodidaqt.utils import (
+from daquiri.collections import AttrDict
+from daquiri.utils import (
     AccessRecorder,
     ScanAccessRecorder,
     find_conflict_free_matches,

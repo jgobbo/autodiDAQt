@@ -8,8 +8,8 @@ import uuid
 from dataclasses import MISSING, fields, is_dataclass
 from pathlib import Path
 
-from autodidaqt_common.remote.command import InternalMessage, serialize_wire_types
-from autodidaqt_common.remote.utils import ALL_WIRE_MESSAGES
+from daquiri_common.remote.command import InternalMessage, serialize_wire_types
+from daquiri_common.remote.utils import ALL_WIRE_MESSAGES
 
 
 def random_string(length=10):
@@ -43,7 +43,9 @@ def fuzz_type(type_: Any):
             return fuzz_type(random.choice(type_.__args__))
         elif type_name.startswith("Dict"):
             key_type, value_type = type_.__args__
-            return dict([[fuzz_type(key_type), fuzz_type(value_type)] for _ in range(5)])
+            return dict(
+                [[fuzz_type(key_type), fuzz_type(value_type)] for _ in range(5)]
+            )
 
     print(type_)
     raise NotImplementedError

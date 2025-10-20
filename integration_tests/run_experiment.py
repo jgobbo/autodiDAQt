@@ -1,16 +1,16 @@
 from multiprocessing import Process
 
-from autodidaqt_common.remote.command import (
+from daquiri_common.remote.command import (
     AllState,
     GetAllStateCommand,
     SetScanConfigCommand,
     StartRunCommand,
 )
-from autodidaqt_common.remote.config import RemoteConfiguration
+from daquiri_common.remote.config import RemoteConfiguration
 
-from autodidaqt.core import CommandLineConfig
-from autodidaqt.examples.scanning_experiment import SimpleScan, SimpleScanMode, app
-from autodidaqt.remote.scheduler import PairScheduler
+from daquiri.core import CommandLineConfig
+from daquiri.examples.scanning_experiment import SimpleScan, SimpleScanMode, app
+from daquiri.remote.scheduler import PairScheduler
 
 remote_config = RemoteConfiguration("tcp://127.0.0.1:13133")
 
@@ -23,7 +23,9 @@ class TestScheduler(PairScheduler):
         # just a sanity check
         assert "SimpleScan" in [t.name for t in state.state.extra_types.values()]
 
-        scan = SimpleScan(n_steps=17, start=-9, stop=7, mode=SimpleScanMode.MOVE_WHILE_MEASURING)
+        scan = SimpleScan(
+            n_steps=17, start=-9, stop=7, mode=SimpleScanMode.MOVE_WHILE_MEASURING
+        )
         self.socket.send(SetScanConfigCommand.from_scan_config(scan))
         self.socket.send(StartRunCommand())
         data = await self.run_finishes()

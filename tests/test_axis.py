@@ -4,11 +4,11 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from autodidaqt.instrument import AxisSpecification, ManagedInstrument
-from autodidaqt.instrument.axis import Axis, PolledRead, PolledWrite, ProxiedAxis
-from autodidaqt.instrument.spec import AxisDescriptor, AxisListSpecification, MockDriver
+from daquiri.instrument import AxisSpecification, ManagedInstrument
+from daquiri.instrument.axis import Axis, PolledRead, PolledWrite, ProxiedAxis
+from daquiri.instrument.spec import AxisDescriptor, AxisListSpecification, MockDriver
 
-from .conftest import Mockautodidaqt
+from .conftest import Mockdaquiri
 
 
 class A:
@@ -123,7 +123,7 @@ class PseudoInstrument(ManagedInstrument):
 
 
 @pytest.mark.asyncio
-async def test_proxied_axis_simple_values(app: Mockautodidaqt):
+async def test_proxied_axis_simple_values(app: Mockdaquiri):
     app.config._cached_settings["instruments"]["simulate_instruments"] = False
     app.init_with(managed_instruments=dict(p=PseudoInstrument))
 
@@ -155,7 +155,7 @@ async def test_proxied_axis_simple_values(app: Mockautodidaqt):
 
 
 @pytest.mark.asyncio
-async def test_proxied_axis_list(app: Mockautodidaqt):
+async def test_proxied_axis_list(app: Mockdaquiri):
     app.config._cached_settings["instruments"]["simulate_instruments"] = False
     app.init_with(managed_instruments=dict(p=PseudoInstrument))
 
@@ -170,7 +170,7 @@ async def test_proxied_axis_list(app: Mockautodidaqt):
 
 
 @pytest.mark.asyncio
-async def test_proxied_axis_polling(app: Mockautodidaqt, mocker):
+async def test_proxied_axis_polling(app: Mockdaquiri, mocker):
     # TODO: fix this this is gross.
     app.config._cached_settings["instruments"]["simulate_instruments"] = False
     app.init_with(managed_instruments=dict(p=PseudoInstrument))
